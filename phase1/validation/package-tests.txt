@@ -1,0 +1,15 @@
+test_auth_and_brand_isolation_guards (test_phase1_package.OverlayTests.test_auth_and_brand_isolation_guards) ... ok
+test_brand_profile_seeds (test_phase1_package.OverlayTests.test_brand_profile_seeds) ... ok
+test_copy_script_parses (test_phase1_package.OverlayTests.test_copy_script_parses) ... ok
+test_phase1_files_present (test_phase1_package.OverlayTests.test_phase1_files_present) ... ok
+test_worker_client_parses (test_phase1_package.OverlayTests.test_worker_client_parses) ... ok
+test_worker_security_features (test_phase1_package.OverlayTests.test_worker_security_features) ... ok
+test_header_builder_emits_fresh_nonce_and_correct_path (test_phase1_runtime_helpers.HelperTests.test_header_builder_emits_fresh_nonce_and_correct_path) ... ok
+test_overlay_confirm_creates_backup (test_phase1_runtime_helpers.HelperTests.test_overlay_confirm_creates_backup) ... ok
+test_overlay_dry_run_preserves_existing_files (test_phase1_runtime_helpers.HelperTests.test_overlay_dry_run_preserves_existing_files) ... ok
+test_require_env_rejects_plain_http (test_phase1_runtime_helpers.HelperTests.test_require_env_rejects_plain_http) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 1.417s
+
+OK

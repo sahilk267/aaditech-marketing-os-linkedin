@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+!worker/.env.worker.example
+**/__pycache__/
+*.pyc
+vendor/
+node_modules/
+.phpunit.cache/
+*.log

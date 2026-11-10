@@ -1,0 +1,24 @@
+# Evidence from isolated authoring sandbox, 2026-11-11 IST
+
+Command: python -m compileall -q scripts worker tests
+Result: success (exit code 0)
+
+Command: php -l scripts/preflight/hostinger.php
+Result: No syntax errors detected in scripts/preflight/hostinger.php (exit code 0)
+
+Command: python -m unittest discover -s tests -v
+Result:
+  test_benchmark_schema_validator ... ok
+  test_gitignore_excludes_sensitive_artifacts ... ok
+  test_hostinger_script_outputs_json_when_php_available ... ok
+  test_hostinger_script_syntax_when_php_available ... ok
+  test_original_srs_maintained ... ok
+  test_required_docs_exist ... ok
+  Ran 6 tests in 0.026s
+  OK
+
+Command: python worker/benchmark_ollama.py --list-models
+Result: {"status":"ollama_unreachable","error_class":"URLError"}
+Exit code: 2 (expected: Ollama was not installed on this sandbox)
+
+CAVEAT: These tests do not prove Hostinger deployment, Windows desktop operation, real MySQL migrations, Laravel behavior, Ollama CPU performance, or social publishing.
