@@ -55,3 +55,13 @@ The MariaDB 11.4 Docker image uses `healthcheck.sh --connect --innodb_initialize
 Worker explicitly requests a 900-second lease. Its 240-second keepalive was inside that limit, but could leave an active long-running CPU task appearing offline. The worker now renews its lease and heartbeat every 60 seconds, with a regression test.
 
 Telegram operational outbox now atomically claims alerts, retries unacknowledged deliveries, and recovers stale sending claims. Messages contain only event type and internal numeric ID, never untrusted event payloads or credentials. Publication success/manual fallback/reconciliation and worker reconnect state now emit events; maintenance creates deduplicated backlog and OAuth expiry alerts. Telegram is at-least-once because Telegram offers no caller-supplied idempotency key. The new Laravel tests exercise missing credentials, delivery, retry, and data redaction.
+
+
+## Release artifact smoke-install gate (2026-11-12)
+
+The GitHub release workflow now extracts its produced archive into a clean folder and calls the **same `scripts/install.sh` shipped to users** against a fresh disposable MariaDB database. The gate validates automatic database creation (with temporary CI root grants), migrations, four-brand seeding, admin bootstrap and `aadi:doctor`, then runs installation a second time to check idempotence. The ZIP/tar artifact is uploaded **only if these steps pass**. This is CI evidence, not proof of Hostinger permissions, DNS, TLS or live platform OAuth.
+
+
+### Installer dotenv credential parsing (2026-11-12)
+
+The deploy preflight now uses Laravel's own `vlucas/phpdotenv` parser instead of a custom quote-stripper. This fixes the mismatch for valid database passwords containing embedded quotes or backslashes. An integration regression checks that the interactive setup's escaped password encoding round-trips with the deployment parser.

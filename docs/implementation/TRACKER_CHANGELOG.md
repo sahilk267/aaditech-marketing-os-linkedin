@@ -39,3 +39,13 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - Implemented atomic claim and stale-claim recovery for Telegram outbox, cautious status notifications and safety tests; no secrets sent.
 - Publishing updates emit durable events for reconciliation/success/manual-ready.
 - No live Telegram or platform deployment claim: Laravel tests must pass in GitHub CI and live API integrations are still owner-gated.
+
+
+### 2026-11-12 — CI first-install and upgrade smoke gate
+- Release workflow now extracts the built archive and executes `scripts/install.sh` twice with disposable MariaDB root permissions, then verifies route migrations, admin bootstrap and doctor readiness.
+- The artifact upload step is after the smoke-install gate; no completion status changes until that GitHub run finishes successfully.
+
+
+### 2026-11-12 — Deployment dotenv parsing parity
+- Use dependency-provided `Dotenv::parse` for deployment database credentials; add an escaped-password round-trip test to the Laravel suite.
+- CI release smoke-install on fresh MariaDB is required before publishing an archive; no real Hostinger authorization is assumed.

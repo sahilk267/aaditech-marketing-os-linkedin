@@ -30,17 +30,17 @@ if (!is_file($envPath)) {
     if (!copy($root.'/.env.example',$envPath)) {fwrite(STDERR,"Cannot initialize .env\n");exit(2);}
     @chmod($envPath,0600);
 }
-function parseEnv(string $p): array {
-    $result=[];
-    foreach (file($p, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
-        if (!preg_match('/^([A-Z][A-Z0-9_]*)=(.*)$/',trim($line),$m)) continue;
-        $value=trim($m[2]);
-        if (strlen($value)>1 && ($value[0]==='"'||$value[0]==="'") && $value[-1]===$value[0]) $value=substr($value,1,-1);
-        $result[$m[1]]=$value;
-    }
-    return $result;
+// Use the same dotenv parser as Laravel so escaped quotes/backslashes in
+// interactive passwords never become different database credentials.
+require_once $root.'/vendor/autoload.php';
+try {
+    $raw=file_get_contents($envPath);
+    if ($raw===false) throw new \RuntimeException('ENV_READ_FAILED');
+    $settings=\Dotenv\Dotenv::parse($raw);
+} catch (\Throwable $e) {
+    fwrite(STDERR,"BLOCKED: invalid .env syntax; correct it in the private deployment folder.\n");
+    exit(2);
 }
-$settings=parseEnv($envPath);
 $var=static fn(string $key,string $fallback=''):string => (($sys=getenv($key))!==false && $sys!=='') ? $sys : ($settings[$key]??$fallback);
 $database=$var('DB_DATABASE');$username=$var('DB_USERNAME');$password=$var('DB_PASSWORD');
 $host=$var('DB_HOST','127.0.0.1');$port=$var('DB_PORT','3306');$url=$var('APP_URL');

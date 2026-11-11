@@ -51,4 +51,6 @@ for label, content in [('application CI',app_ci),('release CI',release_ci)]:
     assert 'healthcheck.sh --connect --innodb_initialized' in content, f'{label} must use MariaDB healthcheck.sh'
 assert 'mysqladmin ping' not in release_ci, 'Release builder has only MariaDB, never use mysqladmin healthcheck'
 assert 'phpunit.database.xml' in app_ci, 'DB integration config must trigger application CI'
+assert 'Smoke test the actual deployable bundle' in release_ci, 'Release must be smoke-installed from extracted artifact'
+assert release_ci.index('Smoke test the actual deployable bundle') < release_ci.index('actions/upload-artifact@v4'), 'Never upload an untested release'
 print('PASS: MariaDB/MySQL container health checks and DB CI trigger')

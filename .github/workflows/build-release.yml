@@ -64,6 +64,33 @@ jobs:
               --exclude='phase1' --exclude='phase2plus' --exclude='*.log' \
               -czf dist/aadi-marketing-os-release.tar.gz \
               artisan composer.json composer.lock app bootstrap config database routes resources public worker scripts storage vendor .env.example
+      - name: Smoke test the actual deployable bundle on a fresh MariaDB database
+        shell: bash
+        env:
+          APP_URL: https://ci.example.invalid
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_DATABASE: aadi_fresh_install_ci
+          DB_USERNAME: root
+          DB_PASSWORD: ci-only-root-password
+          AADI_ADMIN_EMAIL: admin@example.invalid
+          AADI_ADMIN_PASSWORD: ci-only-disposable-admin-password
+        run: |
+          set -Eeuo pipefail
+          mkdir -p dist/smoke
+          tar -xzf dist/aadi-marketing-os-release.tar.gz -C dist/smoke
+          cd dist/smoke
+          test -s vendor/autoload.php
+          test -s composer.lock
+          cp .env.example .env
+          chmod 600 .env
+          # Fresh schema, four brand seed, admin creation, config cache and doctor.
+          bash scripts/install.sh
+          # Repeat the exact installer: no destructive reset or duplicate rows.
+          bash scripts/install.sh
+          php artisan migrate:status
+          php artisan aadi:doctor --json
       - uses: actions/upload-artifact@v4
         with:
           name: aadi-marketing-os-release-${{ github.sha }}
