@@ -1,0 +1,42 @@
+name: Aadi Marketing OS - Application CI
+on:
+  push:
+    paths: ['app/**','bootstrap/**','config/**','database/**','routes/**','resources/**','tests/**','worker/**','scripts/**','artisan','composer.json','phpunit.xml','.github/workflows/app-ci.yml']
+  pull_request:
+  workflow_dispatch:
+jobs:
+  php-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.3','8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, dom, xml, curl, pdo_sqlite, sqlite3, pdo_mysql, fileinfo, openssl
+          tools: composer:v2
+          coverage: none
+      - name: Validate composer manifest
+        run: composer validate --no-check-publish
+      - name: Install backend dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Syntax-check PHP
+        run: find app bootstrap config database routes tests scripts -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Execute Laravel feature tests
+        run: php artisan test
+      - name: Check routes
+        run: php artisan route:list
+  python-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install worker dependencies
+        run: python -m pip install -r worker/requirements.txt
+      - name: Run worker unit tests
+        working-directory: worker
+        run: python -m unittest discover -s tests -v

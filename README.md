@@ -1,27 +1,51 @@
-# Aadi Marketing OS — LinkedIn & Multi-Brand Marketing Foundation
+# Aadi Marketing OS — Unified Laravel Application
 
-This repository contains the **Phase 0 preflight kit** and **Phase 1 Laravel source overlay** for Aadi Marketing OS. It is **not yet a runnable Laravel application**, and nothing here has been deployed to production.
+**Canonical runnable source** is at the repository root: `artisan`, `composer.json`, `app/`, `bootstrap/`, `database/`, `routes/`, `resources/`, `worker/`. The older `phase0/`, `phase1/` and `phase2plus/` folders are historic reference overlays **and are not installed or autoloaded**. Do not apply them again.
 
-## Scope
+## Deployment contract
 
-Four separated brands: Aadi Tech Solutions, Overseas Job Placement, AadiPro, and ToolboxGalaxy. Planned stack: Laravel + MySQL on Hostinger shared hosting, local Python desktop worker via outbound HTTPS, free-only OpenRouter with local Ollama fallback, FFmpeg media processing, and official authorized social-network publishing adapters. No paid AI calls, Redis, n8n, browser bots, or unofficial publishing endpoints.
+- PHP **8.3+**, Laravel 13 and extensions documented at [Laravel 13 deployment requirements](https://laravel.com/framework/docs/13.x/deployment).
+- Existing Hostinger Business plan with supported PHP, MySQL 8-compatible instance and a domain whose document root points to `public/`. The project root must **never** be web-accessible.
+- Zero paid AI requests: the worker checks current OpenRouter model prices before making any call and uses local Ollama when free capacity is unavailable. No paid fallback, Redis, n8n, paid search API, browser posting bots or VPS.
+- Four brand profiles are seeded idempotently. Publishing requires human approval, verified account permissions and official API access. Unsupported channels provide `manual_ready` export packages, not fake auto-posting.
 
-## Source packages
+## One-command backend installation / upgrade
 
-- [`phase0/`](phase0/README.md) — architecture, full SRS, Hostinger/desktop preflight tools, CPU-only Ollama benchmark, and validation evidence.
-- [`phase1/`](phase1/README.md) — Laravel 13-compatible **source overlay**, migrations, RBAC, four-brand policy/CRUD, session login, audit logs, worker registration/heartbeat, demo Blade dashboard, tests, Python prototype, and overlay installer.
-- [`phase1/docs/PHASE1_STATUS.md`](phase1/docs/PHASE1_STATUS.md) — what is verified and what remains blocked.
-- [`phase1/docs/PHASE1_NEXT_STEPS.md`](phase1/docs/PHASE1_NEXT_STEPS.md) — ordered validation and next steps.
+After deploying code and configuring private `DB_*`, `APP_URL`, and `AADI_ADMIN_EMAIL` in the environment or `.env` (never Git):
 
-## Installation boundary
+```bash
+bash scripts/install.sh
+```
 
-**Do not deploy this repository root as a Laravel app.** Start from a newly generated Laravel 13 project with compatible PHP, Composer, required extensions, and MySQL, then dry-run `phase1/scripts/apply_overlay.py` against the inspected skeleton. Follow [`phase1/README.md`](phase1/README.md) for details.
+This installs PHP dependencies, checks requirements, attempts to create the configured MySQL database **only if the supplied MySQL account has CREATE privilege**, applies migrations, seeds the four brands, initializes `APP_KEY` if missing, and builds caches. It does not erase existing data. For noninteractive owner creation, provide a high-entropy password through the protected `AADI_ADMIN_PASSWORD` environment variable (minimum 14 characters); otherwise run `php artisan user:bootstrap-admin owner@your-domain.example` interactively. No default password or public installer exists.
 
-No credentials or `.env` files belong in Git. Environment variable examples intentionally contain only blank or placeholder values. This initial repository push is source-only; full Laravel/MySQL integration tests, Hostinger access verification, desktop Ollama benchmark, and social OAuth approvals are still pending. Do not assume automated posting is enabled.
+**Hosting limitations cannot be bypassed:** without working database/server credentials, required PHP modules, and MySQL privileges the installer fails closed with a diagnostic rather than falsely reporting success. Database **tables** are always automatically migrated once connectivity is available. See `docs/DEPLOYMENT_RUNBOOK.md`.
 
+To preflight only:
 
-## Phase 2–9 source modules
+```bash
+composer install --no-dev --optimize-autoloader
+php scripts/deploy.php --check
+php artisan aadi:doctor --json
+```
 
-Further source implementation is in [phase2plus/README.md](phase2plus/README.md), including durable workflow jobs, free-only AI/Ollama fallback, public research, content/evidence gates, SVG media, conditional official LinkedIn **text-only** posting, manual social packages, analytics, and operations tooling.
+Configure a hosting cron every minute (`php /private/path/to/artisan schedule:run`) **or** have the local Python worker call the protected `/api/v1/worker/tick` endpoint once per minute. Do not expose worker tokens in URLs. The app can operate with the worker in outbound-only mode; CPU-only content generation/rendering happens on that desktop.
 
-**Status:** source-only and syntax/unit-tested in the development sandbox; Laravel/MySQL integration tests and live platform OAuth/API/Hostinger verification remain pending. Apply Phase 1 then Phase 2+ overlays to an inspected Laravel skeleton. Never assume other social channels have auto-publishing permission. No credentials or customer data should be committed.
+## Tests
+
+```bash
+composer install
+php artisan test
+cd worker && python -m pip install -r requirements.txt && python -m unittest discover -s tests -v
+```
+
+GitHub Actions runs framework tests and worker tests on push. **Until CI has produced a green Laravel run and the Hostinger/MySQL/worker/OAuth live checks have passed, the system is not production-verified.** Test cases and source-level checks do not count as a live integration pass.
+
+## Control documents
+
+- [`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md) — actual implementation status, evidence and blockers.
+- [`docs/DEPLOYMENT_RUNBOOK.md`](docs/DEPLOYMENT_RUNBOOK.md) — exact first-deploy/upgrade/rollback process.
+- [`docs/implementation/`](docs/implementation/) — 19 components, 146 tasks, 40 requirements, 40 E2E test cases, conflict/decision trackers.
+- [`phase0/docs/SRS.md`](phase0/docs/SRS.md) — original requirements baseline, unchanged.
+
+There is no claim of universal autonomous publishing. Official platform permissions and acceptable source evidence must be granted/verified by the account owner.

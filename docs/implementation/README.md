@@ -15,3 +15,7 @@
 11. `validate_tracker.py` — structural checker. Run in CI.
 
 **Important:** Excel workbook is a secondary readable view; synchronize edits into these CSVs before merging. `Verified` is forbidden without independent test/review evidence.
+
+
+## 2026-11-12 canonical app update
+Canonical runtime is now the **repository root**. All task status changes remain unverified until framework and live E2E evidence is produced. See `../RELEASE_READINESS.md` and `../DEPLOYMENT_RUNBOOK.md`. Do not execute historical overlay scripts against this root.

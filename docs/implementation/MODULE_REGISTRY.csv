@@ -1,20 +1,20 @@
 module_id,canonical_module,complexity,baseline,primary_gate,owner,status
-M01,Laravel Web Application,Basic,Phase 1 UI source; no integrated runtime,G01,Engineering,Source/Not Verified
-M02,REST API,Basic,Phase 1/2 route overlays; integration pending,G01,Engineering,Source/Not Verified
+M01,Laravel Web Application,Basic,Phase 1 UI source; no integrated runtime,G01,Engineering,Unified source present / E2E not verified
+M02,REST API,Basic,Phase 1/2 route overlays; integration pending,G01,Engineering,Unified source present / E2E not verified
 M03,Authentication and RBAC,Basic,Source and feature tests exist; unexecuted in Laravel,G02,Engineering,Source/Not Verified
-M04,Brand and Campaign Service,Basic,Brand CRUD + campaign basics; advanced planning missing,G02,Engineering,Source/Not Verified
+M04,Brand and Campaign Service,Basic,Brand CRUD + campaign basics; advanced planning missing,G02,Engineering,Unified source present / E2E not verified
 M05,Research Source Service,Expert,HTTPS fetch/source registry source; broader source coverage missing,G05,Engineering,Source/Not Verified
-M06,Content Service,Expert,AI draft/approval source; advanced editorial flows missing,G06,Engineering,Source/Not Verified
-M07,AI Gateway / Model Router,Expert,Free guard and worker source; live validation absent,G04,Engineering,Source/Not Verified
-M08,Job Queue and Scheduler,Expert,DB lease/retry source; MySQL concurrency validation absent,G03,Engineering,Source/Not Verified
-M09,Event Dispatcher / Outbox,Expert,Durable event records; delivery tests absent,G03,Engineering,Source/Not Verified
+M06,Content Service,Expert,AI draft/approval source; advanced editorial flows missing,G06,Engineering,Unified source present / E2E not verified
+M07,AI Gateway / Model Router,Expert,Free guard and worker source; live validation absent,G04,Engineering,Unified source present / E2E not verified
+M08,Job Queue and Scheduler,Expert,DB lease/retry source; MySQL concurrency validation absent,G03,Engineering,Unified source present / E2E not verified
+M09,Event Dispatcher / Outbox,Expert,Durable event records; delivery tests absent,G03,Engineering,Unified source present / E2E not verified
 M10,Verification Service,Expert,ID/freshness checks; claim-to-evidence semantics incomplete,G05,Engineering,Source/Not Verified
-M11,Media Asset Service,Expert,SVG source; image/carousel/video lifecycle incomplete,G07,Engineering,Source/Not Verified
-M12,Publishing Service,Expert,Text-only LinkedIn adapter; uncertain reconciliation incomplete,G08,Engineering,Source/Not Verified
-M13,Platform Adapter Registry,Expert,LinkedIn/manual-only adapters; 6 other official channels absent,G08,Engineering,Source/Not Verified
-M14,Analytics Service,Basic,Record-level manual import; metric semantics/automated ingestion missing,G09,Engineering,Source/Not Verified
-M15,Notification Service,Basic,Telegram/outbox partial; complete alert matrix unverified,G04,Engineering,Source/Not Verified
-M16,Audit and Observability,Basic,Basic logs; telemetry/alerts/retention incomplete,G00,Engineering,Source/Not Verified
-M17,Python Local Worker,Expert,Polling/dispatch source; service/recovery/renewals unverified,G03,Engineering,Source/Not Verified
-M18,Ollama local inference,Expert,Fallback client source; CPU benchmark pending,G04,Engineering,Source/Not Verified
-M19,FFmpeg media process,Basic,FFmpeg helper source; robust lifecycle/platform exports missing,G07,Engineering,Source/Not Verified
+M11,Media Asset Service,Expert,SVG source; image/carousel/video lifecycle incomplete,G07,Engineering,Unified source present / E2E not verified
+M12,Publishing Service,Expert,Text-only LinkedIn adapter; uncertain reconciliation incomplete,G08,Engineering,Unified source present / E2E not verified
+M13,Platform Adapter Registry,Expert,LinkedIn/manual-only adapters; 6 other official channels absent,G08,Engineering,Unified source present / E2E not verified
+M14,Analytics Service,Basic,Record-level manual import; metric semantics/automated ingestion missing,G09,Engineering,Unified source present / E2E not verified
+M15,Notification Service,Basic,Telegram/outbox partial; complete alert matrix unverified,G04,Engineering,Unified source present / E2E not verified
+M16,Audit and Observability,Basic,Basic logs; telemetry/alerts/retention incomplete,G00,Engineering,Unified source present / E2E not verified
+M17,Python Local Worker,Expert,Polling/dispatch source; service/recovery/renewals unverified,G03,Engineering,Unified source present / E2E not verified
+M18,Ollama local inference,Expert,Fallback client source; CPU benchmark pending,G04,Engineering,Unified source present / E2E not verified
+M19,FFmpeg media process,Basic,FFmpeg helper source; robust lifecycle/platform exports missing,G07,Engineering,Unified source present / E2E not verified

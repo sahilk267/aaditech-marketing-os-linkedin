@@ -1,3 +1,5 @@
+> **2026-11-12 implementation update:** canonical runnable source moved to repository root; historical overlay directories are now read-only references. Read [Release readiness](../RELEASE_READINESS.md) before interpreting any source-level status as production ready.
+
 # Aadi Marketing OS — Master Implementation Plan
 
 **Planning baseline:** 2026-11-11 (Asia/Kolkata)  
