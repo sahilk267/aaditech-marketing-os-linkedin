@@ -7,7 +7,7 @@
   "requirements": 40,
   "scenarios": 40,
   "conflicts": 19,
-  "decisions": 15,
+  "decisions": 16,
   "channels": 9,
   "source_commit_note": "baseline before new security/reliability commit"
 }

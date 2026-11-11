@@ -40,3 +40,7 @@ Code exists ≠ integration test passes ≠ live environment connected ≠ E2E v
 **Local evidence:** Python worker tests 13/13 passed, PHP syntax checks, source structure checks, tracker integrity validator, JavaScript syntax and Bash syntax checks. Composer and required PHP DB extensions are unavailable in this sandbox, so fresh Laravel + MySQL execution and CI green status are *not* established. Windows Task Scheduler installer is not tested on an actual desktop.
 
 **Still not complete:** All authorized social publishing adapters (Facebook/Instagram/YouTube/Pinterest/Threads/TikTok), media upload through platform APIs, claim-level semantic evidence proof, fully automated analytics collection, high-quality video production, security/load/backup recovery drills, actual Hostinger install, actual Windows/Ollama benchmark, and live OAuth permissions. Readiness remains **NOT PRODUCTION VERIFIED**. Public repository must never contain credentials.
+
+## Database compatibility coverage added (2026-11-12)
+
+Hostinger's current support documentation describes MariaDB on shared/cloud hosting, although it provides MySQL-compatible access. CI now tests the Laravel feature suite against **both MySQL 8.0 and MariaDB 11.4**, with the release artifact additionally gated on the MariaDB suite. These are * CI tests*, not a substitute for actual Hostinger PHP/MySQL permissions, migration backup and post-deploy smoke tests.

@@ -9,6 +9,18 @@ permissions:
 jobs:
   bundle:
     runs-on: ubuntu-latest
+    services:
+      database:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: ci-only-root-password
+          MARIADB_DATABASE: aadi_ci
+          MARIADB_USER: aadi_ci_user
+          MARIADB_PASSWORD: ci-only-disposable-password
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=15
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -26,6 +38,7 @@ jobs:
       - name: Run Laravel migrations, feature tests and route registration
         run: |
           php artisan test
+          php artisan test --configuration=phpunit.database.xml
           php artisan route:list
       - name: Run Python worker security and integration tests
         working-directory: worker

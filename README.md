@@ -55,3 +55,5 @@ There is no claim of universal autonomous publishing. Official platform permissi
 Authenticated brand marketing screens include source registration/approval, permitted fetch, human research verification, evidence-backed AI draft, accountable content approval, media render, scheduling/manual-ready package, metric import, and publication reconciliation. LinkedIn organization text posting remains behind official app authorization and independently verified scopes; other channels stay manual-ready. A Windows startup-task installer is available at `worker/install_windows.ps1` (requires desktop verification).
 
 **Source does not equal 100% deployment readiness:** unresolved provider permissions, hosting grants, remote desktop operation, full Laravel/MySQL/Windows tests, and remaining advanced channel features are still tracked in the gate register. No code can grant OAuth scopes or database privileges that the hosting/platform account does not possess.
+
+Database compatibility CI includes MySQL 8.0 and MariaDB 11.4, plus the default SQLite test run. Production release bundles are gated on MariaDB integration before publication.

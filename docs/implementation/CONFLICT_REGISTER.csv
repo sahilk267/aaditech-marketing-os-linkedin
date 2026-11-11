@@ -1,7 +1,7 @@
 id,classification,priority,name,finding,resolution_gate,closure_test,status
 C-001,Confirmed,P0,Overlay file overlap,"4 shared paths differ: routes/api.php, routes/web.php, routes/console.php, resources/views/brands/show.blade.php",G01,Merge into one canonical app; route:list unique count and snapshot diff,In Review - integration proof pending
 C-002,Confirmed,P0,No standalone Laravel runtime,"GitHub root holds phase0/phase1/phase2plus overlays, not Composer-generated deployable Laravel app",G01,"Create canonical skeleton + lockfile, migrate and artisan test",In Review - integration proof pending
-C-003,Confirmed,P0,No full Laravel/MySQL execution evidence,Feature test source exists but sandbox PHP lacks Composer/required DB extensions,G01;G02;G10,Run real tests in compatible staging CI MySQL,Open
+C-003,Confirmed,P0,No full Laravel/MySQL execution evidence,Feature test source exists but sandbox PHP lacks Composer/required DB extensions,G01;G02;G10,Run real tests in compatible staging CI MySQL,In Review - MySQL and MariaDB CI runs pending
 C-004,Confirmed,P0,Worker lease renewal not connected,JobEngine renew endpoint exists; work_once runs jobs serially without periodic renew,G03,Periodic renew + fencing and crash recovery tests,In Review - integration proof pending
 C-005,Confirmed,P0,Analytics cumulative metric overcount risk,"WeeklyReport adds all metric snapshot values per metric, including repeated cumulative counts",G09,Define metric kinds and latest-per-post report algorithm,In Review - integration proof pending
 C-006,Confirmed,P0,Claims only reference IDs,ContentPolicy checks verified/fresh research IDs; no semantic evidence support proof,G05,"Claim/source semantic or accountable human attestation, test unsupported claims",Open

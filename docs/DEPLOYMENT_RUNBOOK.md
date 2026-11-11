@@ -60,3 +60,5 @@ GitHub Build Deployment Bundle now runs Laravel tests, worker tests, source inte
 On the desktop, `worker/install_windows.ps1` provisions Python virtual environment, checks worker tests, requests a scoped credential, restricts `.env.worker` permissions and creates a user-level startup task. An at-logon task is not an always-on headless service; use a controlled Windows service where needed.
 
 An ambiguous LinkedIn provider response is never automatically retried. Use the brand Marketing page reconciliation panel to record a verified provider post ID or explicitly mark the item manual-ready after checking official organization activity. This action is admin-only and audited.
+
+Hostinger may use **MariaDB** behind its MySQL-compatible connection. The GitHub CI database matrix covers MySQL 8.0 and MariaDB 11.4. The actual database and grant set are established at owner deployment; database creation remains conditional on `CREATE DATABASE` permission.

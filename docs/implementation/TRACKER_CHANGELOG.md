@@ -21,3 +21,8 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - Browser operator forms cover source approval/fetch, research verification, content approval/media/schedule, manual exports, analytics and OAuth.
 - Windows user-level worker installer + protected worker env config, duplicate Python `media_result` removed and source checker guards duplicate definitions.
 - All touched task IDs remain `In Progress`/`In Review`, not Verified. No claim of executed Laravel/MySQL tests or live OAuth.
+
+### 2026-11-12 — Hostinger database engine compatibility
+- Hostinger documentation currently identifies MariaDB for shared/web hosting. Added MySQL 8.0 and MariaDB 11.4 GitHub CI integration jobs and a MariaDB release gate.
+- `phpunit.database.xml` uses disposable CI-only credentials; no production credentials are committed.
+- T031 marked In Progress, decision D-016 recorded. Feature suite must actually pass before gate verification.

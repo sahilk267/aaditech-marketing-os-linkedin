@@ -3,7 +3,7 @@
 from pathlib import Path
 import ast,json,re,subprocess,sys
 root=Path(__file__).resolve().parents[1]
-required=['composer.json','artisan','bootstrap/app.php','bootstrap/providers.php',
+required=['composer.json','phpunit.database.xml','artisan','bootstrap/app.php','bootstrap/providers.php',
     'public/index.php','routes/api.php','routes/web.php','routes/console.php',
     'database/seeders/BrandSeeder.php','scripts/deploy.php','app/Console/Commands/AadiDoctor.php',
     'app/Console/Commands/AadiTick.php','.github/workflows/app-ci.yml',

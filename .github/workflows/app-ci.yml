@@ -28,6 +28,40 @@ jobs:
         run: php artisan test
       - name: Check routes
         run: php artisan route:list
+  database-integration:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: ['mysql:8.0', 'mariadb:11.4']
+    services:
+      database:
+        image: ${{ matrix.database }}
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-root-password
+          MARIADB_ROOT_PASSWORD: ci-only-root-password
+          MYSQL_DATABASE: aadi_ci
+          MARIADB_DATABASE: aadi_ci
+          MYSQL_USER: aadi_ci_user
+          MARIADB_USER: aadi_ci_user
+          MYSQL_PASSWORD: ci-only-disposable-password
+          MARIADB_PASSWORD: ci-only-disposable-password
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, xml, curl, pdo_mysql, fileinfo, openssl
+          tools: composer:v2
+          coverage: none
+      - name: Install application dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Execute full Laravel suite on actual database service
+        run: php artisan test --configuration=phpunit.database.xml
   python-test:
     runs-on: ubuntu-latest
     steps:
