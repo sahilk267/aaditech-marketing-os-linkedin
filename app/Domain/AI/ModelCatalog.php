@@ -4,10 +4,29 @@ namespace App\Domain\AI;
 
 use App\Models\AiModel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
 
+/** Server-owned OpenRouter catalog. The worker cannot self-certify a paid model as free. */
 class ModelCatalog
 {
-    /** Accept provider metadata only; false/unknown pricing disables the model. */
+    public function syncFromProvider(): array
+    {
+        try {
+            $response=Http::timeout(25)->acceptJson()->get('https://openrouter.ai/api/v1/models');
+            if (!$response->successful() || !is_array($response->json('data'))) {
+                throw new \RuntimeException('Provider catalog invalid');
+            }
+            $rows=$response->json('data');
+            if (count($rows)>5000) throw new \RuntimeException('Provider catalog too large');
+        } catch (\Throwable $e) {
+            // Do not clear the previous inventory on network failure, but selection uses freshness gate.
+            throw ValidationException::withMessages(['catalog'=>'Official provider catalog could not be verified']);
+        }
+        return $this->sync($rows);
+    }
+
+    /** Accept only canonical entries obtained from the provider, not submitted by workers. */
     public function sync(array $rows): array
     {
         $enabled=0;$disabled=0;

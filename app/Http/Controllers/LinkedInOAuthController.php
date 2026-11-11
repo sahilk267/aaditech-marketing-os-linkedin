@@ -55,7 +55,9 @@ class LinkedInOAuthController extends Controller
         $scope=$response->json('scope','');
         // Permissions are not inferred from a successful authorization redirect.
         // The OAuth code exchange succeeded for requested scopes; page role is still unverified.
-        $scopes=is_string($scope) && trim($scope)!=='' ? preg_split('/[ ,]+/',trim($scope)) : ['w_organization_social','r_organization_social'];
+        $scopes=is_string($scope) && trim($scope)!=='' ? array_values(array_unique(preg_split('/[ ,]+/',trim($scope)))) : [];
+        // An omitted provider scope response does not prove a grant. Fail closed.
+        $scopeConfirmed=in_array('w_organization_social',$scopes,true);
         $account=SocialAccount::query()->updateOrCreate([
             'platform'=>'linkedin','external_account_id'=>$flow->external_account_id,
         ],[
@@ -63,8 +65,10 @@ class LinkedInOAuthController extends Controller
             'access_token_encrypted'=>encrypt($token),
             'refresh_token_encrypted'=>null,'scopes'=>$scopes,
             'token_expires_at'=>now()->addSeconds(max(0,(int)$response->json('expires_in',0))),
-            'connection_status'=>'connected', 'api_access_approved'=>false,
+            'connection_status'=>$scopeConfirmed ? 'connected' : 'reauthorization_required', 'api_access_approved'=>false,
         ]);
-        return redirect('/brands/'.$flow->brand_id)->with('status','LinkedIn connected; API approval still requires verification. Account '.$account->id);
+        return redirect('/brands/'.$flow->brand_id)->with('status', $scopeConfirmed
+            ? 'LinkedIn token received; organization permissions still require verification. Account '.$account->id
+            : 'LinkedIn scopes were not confirmed. Reauthorize with approved organization scopes before publishing.');
     }
 }

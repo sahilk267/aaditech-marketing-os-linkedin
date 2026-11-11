@@ -13,3 +13,4 @@ D-011,Quota authority and model pricing,Engineering,Proposed,G04,Server quota au
 D-012,LinkedIn version and permissions,Engineering+Owner,Open,G08/G11,Use currently supported official API and approval-scoped versions,Recheck version before go-live; source dated
 D-013,Out-of-scope paid APIs/X auto posting,Owner,Locked,All,"No paid automation, browser bots or unofficial endpoints",Hard guard and manual-ready default
 D-014,Production readiness language,Engineering,Locked,G10/G11,Never say complete based on syntax/unit tests alone,Multi-gate acceptance and evidence needed
+D-015,First deploy remains private CLI; no unauthenticated web installer or default credentials,Engineering+Owner,Decided,G01/G11,Interactive scripts/setup.sh or protected .env and CI-built vendor package,"Verify SSH, DB CREATE grants and secure admin bootstrap in staging"

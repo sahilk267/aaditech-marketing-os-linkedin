@@ -103,12 +103,14 @@ class WorkerJobsController extends Controller
     {
         [, $caps]=$this->identity($r);
         if (!in_array('ai.catalog_sync',$caps,true)) abort(403);
-        $data=$r->validate(['models'=>['required','array','max:1000']]);
-        return response()->json($catalog->sync($data['models']));
+        // Ignore worker-provided model pricing: the server independently queries the official catalog.
+        // Existing worker clients can still submit 'models' for backward compatibility.
+        return response()->json($catalog->syncFromProvider());
     }
     public function usage(Request $r): JsonResponse
     {
-        $this->identity($r);
+        [, $caps]=$this->identity($r);
+        if (!in_array('content.generate',$caps,true)) abort(403);
         $in=$r->validate([
             'provider'=>['required','in:openrouter,ollama'], 'model_id'=>['required','string','max:180'],
             'task_type'=>['required','string','max:64'],'status'=>['required','in:succeeded,failed,rate_limited'],

@@ -11,9 +11,9 @@
 ## Fresh deploy
 
 ```bash
-cp .env.example .env
-# Private edit: APP_URL=https://..., DB_*, no secrets in terminal history/Git
+# When .env is missing, interactive SSH setup prompts for private credentials
 bash scripts/install.sh
+# For unattended deploy, copy .env.example to .env privately and set APP_URL/DB_* first
 php artisan aadi:doctor --json
 php artisan route:list
 ```
@@ -50,3 +50,13 @@ Without hosting cron, authorize a credential with `heartbeat` capability; local 
 ## Security baseline
 
 No wildcard public installer, no hardcoded passwords, no fake API authorizations, no paid model fallback, no secrets in GitHub Actions logs. In public deployment keep `APP_DEBUG=false`, HTTPS only, encrypted tokens, restricted CORS and login throttling. The absence of credentials must always be visible in readiness status.
+
+## Verified setup and platform recovery workflow
+
+On a private SSH terminal, `bash scripts/install.sh` launches `scripts/setup.sh` if no `.env` is present. It prompts for app URL, DB details and initial admin credentials without a default password. If no interactive shell exists, provide secure environment variables/.env before running the installer. The MySQL user still needs valid grants; the installer never changes server permissions or resets existing data.
+
+GitHub Build Deployment Bundle now runs Laravel tests, worker tests, source integrity and tracker checks *before* creating the tarball; the archive includes its resolved `composer.lock` and production `vendor/`. An artifact should not be deployed if the workflow did not pass. No source-only syntax check is sufficient for production.
+
+On the desktop, `worker/install_windows.ps1` provisions Python virtual environment, checks worker tests, requests a scoped credential, restricts `.env.worker` permissions and creates a user-level startup task. An at-logon task is not an always-on headless service; use a controlled Windows service where needed.
+
+An ambiguous LinkedIn provider response is never automatically retried. Use the brand Marketing page reconciliation panel to record a verified provider post ID or explicitly mark the item manual-ready after checking official organization activity. This action is admin-only and audited.

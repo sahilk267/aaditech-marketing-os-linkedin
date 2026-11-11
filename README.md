@@ -11,13 +11,13 @@
 
 ## One-command backend installation / upgrade
 
-After deploying code and configuring private `DB_*`, `APP_URL`, and `AADI_ADMIN_EMAIL` in the environment or `.env` (never Git):
+After deploying code, run the installer. In an interactive SSH terminal with no `.env`, it prompts securely for database/app/admin credentials; for unattended deployment, configure private `DB_*`, `APP_URL`, and `AADI_ADMIN_EMAIL` in the environment or `.env` (never Git):
 
 ```bash
 bash scripts/install.sh
 ```
 
-This uses the prebuilt GitHub release dependencies when bundled (`vendor/`) or installs them via Composer when absent, checks requirements, attempts to create the configured MySQL database **only if the supplied MySQL account has CREATE privilege**, applies migrations, seeds the four brands, initializes `APP_KEY` if missing, and builds caches. It does not erase existing data. For noninteractive owner creation, provide a high-entropy password through the protected `AADI_ADMIN_PASSWORD` environment variable (minimum 14 characters); otherwise run `php artisan user:bootstrap-admin owner@your-domain.example` interactively. No default password or public installer exists.
+This uses the prebuilt, CI-test-gated GitHub release dependencies when bundled (`vendor/`) or installs them via Composer when absent, checks requirements, attempts to create the configured MySQL database **only if the supplied MySQL account has CREATE privilege**, applies migrations, seeds the four brands, initializes `APP_KEY` if missing, and builds caches. It does not erase existing data. For noninteractive owner creation, provide a high-entropy password through the protected `AADI_ADMIN_PASSWORD` environment variable (minimum 14 characters); otherwise run `php artisan user:bootstrap-admin owner@your-domain.example` interactively. No default password or public installer exists.
 
 **Hosting limitations cannot be bypassed:** without working database/server credentials, required PHP modules, and MySQL privileges the installer fails closed with a diagnostic rather than falsely reporting success. Database **tables** are always automatically migrated once connectivity is available. See `docs/DEPLOYMENT_RUNBOOK.md`.
 
@@ -49,3 +49,9 @@ GitHub Actions runs framework tests and worker tests on push. **Until CI has pro
 - [`phase0/docs/SRS.md`](phase0/docs/SRS.md) — original requirements baseline, unchanged.
 
 There is no claim of universal autonomous publishing. Official platform permissions and acceptable source evidence must be granted/verified by the account owner.
+
+## Available operator workflow
+
+Authenticated brand marketing screens include source registration/approval, permitted fetch, human research verification, evidence-backed AI draft, accountable content approval, media render, scheduling/manual-ready package, metric import, and publication reconciliation. LinkedIn organization text posting remains behind official app authorization and independently verified scopes; other channels stay manual-ready. A Windows startup-task installer is available at `worker/install_windows.ps1` (requires desktop verification).
+
+**Source does not equal 100% deployment readiness:** unresolved provider permissions, hosting grants, remote desktop operation, full Laravel/MySQL/Windows tests, and remaining advanced channel features are still tracked in the gate register. No code can grant OAuth scopes or database privileges that the hosting/platform account does not possess.

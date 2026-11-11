@@ -32,3 +32,11 @@ The repository root now contains a consolidated Laravel 13 application in place 
 ## Completion rule
 
 Code exists ≠ integration test passes ≠ live environment connected ≠ E2E verified. Keep G01/G02/G03/G07/G09/G10/G11 unverified until each gate's evidence is linked. The active status and task-to-requirement trace are in `docs/implementation/*.csv`. A public GitHub repository is not an appropriate place for credentials.
+
+## 2026-11-12 hardening update (pending CI and live testing)
+
+**Added source:** private first-deploy setup wizard (`scripts/setup.sh`), test-gated release workflow and embedded build lock, server-verified provider model catalog, strict LinkedIn OAuth scope handling, audited reconciliation of uncertain publishing outcomes, operator workflow forms, user-scoped Windows worker startup script and local configuration loader. The duplicate `media_result` definition is removed and future duplicates are rejected by `scripts/check_source.py`.
+
+**Local evidence:** Python worker tests 13/13 passed, PHP syntax checks, source structure checks, tracker integrity validator, JavaScript syntax and Bash syntax checks. Composer and required PHP DB extensions are unavailable in this sandbox, so fresh Laravel + MySQL execution and CI green status are *not* established. Windows Task Scheduler installer is not tested on an actual desktop.
+
+**Still not complete:** All authorized social publishing adapters (Facebook/Instagram/YouTube/Pinterest/Threads/TikTok), media upload through platform APIs, claim-level semantic evidence proof, fully automated analytics collection, high-quality video production, security/load/backup recovery drills, actual Hostinger install, actual Windows/Ollama benchmark, and live OAuth permissions. Readiness remains **NOT PRODUCTION VERIFIED**. Public repository must never contain credentials.

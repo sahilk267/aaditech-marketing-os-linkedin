@@ -19,7 +19,10 @@ class SocialAccountController extends Controller
     public function approval(Request $r,Brand $brand,int $id): JsonResponse
     {
         if (!$r->user()?->isAdmin()||!$r->user()->hasBrandAccess($brand)) abort(403);
-        $in=$r->validate(['approved'=>['required','boolean']]);
+        $in=$r->validate([
+            'approved'=>['required','boolean'],
+            'verification_note'=>['required_if:approved,1','nullable','string','min:30','max:1500'],
+        ]);
         $account=SocialAccount::query()->where('brand_id',$brand->id)->findOrFail($id);
         if ($in['approved'] && ($account->platform!=='linkedin'||$account->connection_status!=='connected'||
             !in_array('w_organization_social',$account->scopes??[],true))) abort(422,'Official write approval and scope required');
@@ -28,7 +31,8 @@ class SocialAccountController extends Controller
         \App\Models\AuditLog::query()->forceCreate([
             'user_id'=>$r->user()->id,'actor_type'=>'user','action'=>'social_account.approval_changed',
             'resource_type'=>'social_account','resource_id'=>$account->id,
-            'metadata'=>['approved'=>(bool)$in['approved'],'platform'=>$account->platform],
+            'metadata'=>['approved'=>(bool)$in['approved'],'platform'=>$account->platform,
+                'verification_note'=>$in['verification_note']??null],
         ]);
         return response()->json(['id'=>$account->id,'api_access_approved'=>$account->api_access_approved]);
     }

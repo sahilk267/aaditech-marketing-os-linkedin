@@ -1,12 +1,13 @@
 {
-  "date": "2026-11-11",
-  "source_commit": "9c547ae76fcd3f64793112b0c89a3453dac3ea31",
+  "date": "2026-11-12",
+  "source_commit": "235643b8bfbaf1bca7d797e0516c92dd7a5fc4b6",
   "modules": 19,
   "tasks": 146,
   "gates": 12,
   "requirements": 40,
   "scenarios": 40,
-  "conflicts": 16,
-  "decisions": 14,
-  "channels": 9
+  "conflicts": 19,
+  "decisions": 15,
+  "channels": 9,
+  "source_commit_note": "baseline before new security/reliability commit"
 }

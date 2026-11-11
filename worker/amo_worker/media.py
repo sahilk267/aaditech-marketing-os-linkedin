@@ -25,10 +25,6 @@ def render_svg(brand_name:str,title:str,body:str,primary='#17324D',accent='#20C9
         f'<text x="85" y="90" fill="{accent}" font-size="33" font-weight="bold" font-family="Arial, sans-serif">{brand}</text>'
         +text+'<text x="85" y="565" fill="#FFFFFF" font-size="24" font-family="Arial, sans-serif">Ideas worth sharing</text></svg>')
 
-def media_result(brand_name,title,body,primary='#17324D',accent='#20C997'):
-    svg=render_svg(brand_name,title,body,primary,accent)
-    return {'svg_base64':base64.b64encode(svg.encode()).decode('ascii')}
-
 def ffmpeg_video_from_owned_image(image:Path,out:Path,duration:float=5.0):
     """Optional local video: image must be owned/licensed. Never run model supplied shell commands."""
     if duration<1 or duration>60 or image.suffix.lower() not in ('.png','.jpg','.jpeg'):

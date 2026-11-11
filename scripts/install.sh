@@ -6,5 +6,9 @@ if [[ ! -f vendor/autoload.php ]]; then
   command -v composer >/dev/null || { echo 'BLOCKED: Composer required when release vendor/ is absent'; exit 2; }
   composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 fi
-php scripts/deploy.php --apply --create-database
-php artisan aadi:doctor
+if [[ ! -f .env && -t 0 ]]; then
+  bash scripts/setup.sh
+else
+  php scripts/deploy.php --apply --create-database
+  php artisan aadi:doctor
+fi

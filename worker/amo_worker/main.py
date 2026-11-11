@@ -5,6 +5,7 @@ from .client import Client,ApiError
 from .jobs import Jobs
 from .ai import NoModelAvailable,ModelOutputInvalid
 from .research import UnsafeSource
+from .config import load_worker_env
 
 LOG=logging.getLogger('amo_worker')
 
@@ -45,6 +46,7 @@ def work_once(client:Client,runner:Jobs)->bool:
 def main():
     p=argparse.ArgumentParser();p.add_argument('--once',action='store_true');p.add_argument('--forever',action='store_true')
     args=p.parse_args()
+    load_worker_env()
     logging.basicConfig(level=logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
     client=Client();client.register();runner=Jobs(client)
     if args.once:work_once(client,runner);return
