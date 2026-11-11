@@ -49,3 +49,10 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 ### 2026-11-12 — Deployment dotenv parsing parity
 - Use dependency-provided `Dotenv::parse` for deployment database credentials; add an escaped-password round-trip test to the Laravel suite.
 - CI release smoke-install on fresh MariaDB is required before publishing an archive; no real Hostinger authorization is assumed.
+
+
+### 2026-11-12 — LinkedIn single-image adapter and evidence gate
+- Implemented official Images API initialization/upload/readiness and Posts API media payload for single PNG organization publishing.
+- Rejects provider-controlled upload URLs unless on strict `www.linkedin.com/dms-uploads/` HTTPS allowlist; verifies local brand asset checksum and PNG type, and disallows redirects.
+- Added mocked successful media-post/failed unsafe URL regression tests and pre-schedule asset checks.
+- T098 is In Progress, not verified: LinkedIn video/document/real OAuth and provider media API integration remain outstanding.

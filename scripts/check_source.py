@@ -7,7 +7,8 @@ required=['composer.json','phpunit.database.xml','artisan','bootstrap/app.php','
     'public/index.php','routes/api.php','routes/web.php','routes/console.php',
     'database/seeders/BrandSeeder.php','scripts/deploy.php','app/Console/Commands/AadiDoctor.php',
     'app/Console/Commands/AadiTick.php','.github/workflows/app-ci.yml',
-    'worker/install_windows.ps1','worker/amo_worker/config.py']
+    'worker/install_windows.ps1','worker/amo_worker/config.py',
+    'app/Domain/Publishing/LinkedInImageUploader.php','tests/Feature/Phase2Plus/LinkedInImagePublishingTest.php']
 for p in required:
     assert (root/p).is_file(),f'Missing canonical file: {p}'
 conf=json.loads((root/'composer.json').read_text())

@@ -7,9 +7,11 @@ use App\Models\SocialAccount;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 
-/** LinkedIn Marketing Posts API: organization text posts only, no unofficial endpoints. */
+/** LinkedIn Marketing Posts API: authorized organization text and single-image posts. */
 class OfficialLinkedInAdapter implements PlatformAdapter
 {
+    public function __construct(private LinkedInImageUploader $imageUploader) { }
+
     public function publish(ContentItem $item, SocialAccount $account): array
     {
         if ($account->platform!=='linkedin'||$account->connection_status!=='connected'||!$account->api_access_approved) $this->deny('LinkedIn approval/connection required');
@@ -31,6 +33,12 @@ class OfficialLinkedInAdapter implements PlatformAdapter
             ],
             'lifecycleState'=>'PUBLISHED','isReshareDisabledByAuthor'=>false,
         ];
+        if (in_array($item->content_type,['image_post','visual_post'],true)) {
+            $imageUrn=$this->imageUploader->upload($item,$account,$token,$version);
+            $payload['content']=['media'=>[
+                'id'=>$imageUrn,'altText'=>mb_substr(strip_tags($item->title),0,120),
+            ]];
+        }
         // A timeout after submission is never considered safe to retry blindly.
         $response=Http::timeout(25)->withToken($token)->withHeaders([
             'Linkedin-Version'=>$version,'X-Restli-Protocol-Version'=>'2.0.0',

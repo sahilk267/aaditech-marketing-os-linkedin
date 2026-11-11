@@ -65,3 +65,10 @@ The GitHub release workflow now extracts its produced archive into a clean folde
 ### Installer dotenv credential parsing (2026-11-12)
 
 The deploy preflight now uses Laravel's own `vlucas/phpdotenv` parser instead of a custom quote-stripper. This fixes the mismatch for valid database passwords containing embedded quotes or backslashes. An integration regression checks that the interactive setup's escaped password encoding round-trips with the deployment parser.
+
+
+## Official LinkedIn single-image publishing (2026-11-12)
+
+The authorized LinkedIn organization adapter now supports **single PNG images** in addition to text. It initializes the official Images API upload, uploads only to a narrowly allowed HTTPS LinkedIn upload URL (no redirect), checks the returned image URN/status, and posts using the official Posts API. It validates same-brand media ownership, the stored checksum and file bytes, supported PNG format, scope, organization, token and API version. Scheduling image content requires a rendered same-brand PNG. Failures enter manual reconciliation rather than blind publish retry. An HTTP-mocked feature test covers the intended requests and malicious upload URL rejection.
+
+This **does not implement** LinkedIn video, document, multi-image or carousel publishing, nor prove real organization OAuth access. Those remain manual-ready and approval-gated. The mocked test must pass GitHub CI before marked verified; real end-to-end test awaits an authorized account.

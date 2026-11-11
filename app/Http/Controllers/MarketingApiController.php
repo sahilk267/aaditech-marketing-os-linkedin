@@ -139,6 +139,11 @@ class MarketingApiController extends Controller
             'social_account_id'=>['nullable','integer','min:1'],'scheduled_at'=>['required','date','after:now']]);
         $item=ContentItem::query()->where('brand_id',$brand->id)->findOrFail($contentId);
         $policy->requirePublishable($item);
+        if ($in['platform']==='linkedin' && in_array($item->content_type,['image_post','visual_post'],true) &&
+            !\App\Models\MediaAsset::query()->where('brand_id',$brand->id)->where('content_item_id',$item->id)
+                ->where('asset_type','png')->exists()) {
+            throw ValidationException::withMessages(['media'=>'Render a verified PNG image before scheduling LinkedIn image content']);
+        }
         $account=null;
         if (!empty($in['social_account_id'])) {
             $account=SocialAccount::query()->where('brand_id',$brand->id)->findOrFail($in['social_account_id']);
