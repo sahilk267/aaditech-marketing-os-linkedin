@@ -9,6 +9,8 @@ class ApiError(Exception):
         self.status=status;self.code=code
         super().__init__(f'WORKER_HTTP_{status}_{code}')
 
+REQUESTED_LEASE_SECONDS=900
+
 class Client:
     def __init__(self, url:str|None=None, token:str|None=None, session=None):
         self.url=(url or os.environ['AMO_BASE_URL']).rstrip('/')
@@ -46,9 +48,9 @@ class Client:
         })
     def heartbeat(self):return self.request('POST','/api/v1/worker/heartbeat',{'worker_version':'0.2.0'})
     def tick(self):return self.request('POST','/api/v1/worker/tick')
-    def claim(self):return self.request('POST','/api/v1/worker/jobs/claim',{'lease_seconds':900}).get('job')
+    def claim(self):return self.request('POST','/api/v1/worker/jobs/claim',{'lease_seconds':REQUESTED_LEASE_SECONDS}).get('job')
     def start(self,jid):return self.request('POST',f'/api/v1/worker/jobs/{jid}/start')
-    def renew(self,jid):return self.request('POST',f'/api/v1/worker/jobs/{jid}/renew',{'lease_seconds':900})
+    def renew(self,jid):return self.request('POST',f'/api/v1/worker/jobs/{jid}/renew',{'lease_seconds':REQUESTED_LEASE_SECONDS})
     def complete(self,jid,result):return self.request('POST',f'/api/v1/worker/jobs/{jid}/complete',{'result':result})
     def fail(self,jid,code,retryable):return self.request('POST',f'/api/v1/worker/jobs/{jid}/fail',{'error_code':code,'retryable':retryable})
     def context(self,jid):return self.request('GET',f'/api/v1/worker/jobs/{jid}/context')

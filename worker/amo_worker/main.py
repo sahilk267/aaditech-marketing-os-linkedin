@@ -1,13 +1,15 @@
 """Run: python -m amo_worker.main --once OR --forever; no inbound ports required."""
 from __future__ import annotations
 import argparse,logging,time,threading
-from .client import Client,ApiError
+from .client import Client,ApiError,REQUESTED_LEASE_SECONDS
 from .jobs import Jobs
 from .ai import NoModelAvailable,ModelOutputInvalid
 from .research import UnsafeSource
 from .config import load_worker_env
 
 LOG=logging.getLogger('amo_worker')
+KEEPALIVE_SECONDS=60  # Renew and refresh node heartbeat well before the worker's 900s lease.
+assert KEEPALIVE_SECONDS * 3 < REQUESTED_LEASE_SECONDS
 
 def work_once(client:Client,runner:Jobs)->bool:
     job=client.claim()
@@ -17,11 +19,14 @@ def work_once(client:Client,runner:Jobs)->bool:
     # Long-running CPU inference may outlive the lease. Renew on a separate
     # HTTP session to avoid sharing a requests.Session across threads.
     def keepalive():
-        while not stop.wait(240):
+        while not stop.wait(KEEPALIVE_SECONDS):
             try:
-                Client(url=client.url, token=client.token).renew(jid)
+                keepalive_client=Client(url=client.url,token=client.token)
+                keepalive_client.renew(jid)
+                # A long CPU-only render must not mark a healthy worker offline.
+                keepalive_client.heartbeat()
             except Exception:
-                LOG.warning('Lease renewal failed job_id=%s; completion will be checked by server',jid)
+                LOG.warning('Lease/heartbeat renewal failed job_id=%s; completion will be checked by server',jid)
     renewer=threading.Thread(target=keepalive,name=f'job-lease-{jid}',daemon=True)
     renewer.start()
     try:

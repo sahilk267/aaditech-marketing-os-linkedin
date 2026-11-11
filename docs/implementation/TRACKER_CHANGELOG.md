@@ -32,3 +32,10 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - MySQL 8 matrix passed on commit `6f8f741`; MariaDB service initialization was still in progress.
 - Switched MariaDB health probing to the image's supported `healthcheck.sh --connect --innodb_initialized` in app CI and release workflow; MySQL matrix retains its `mysqladmin` probe.
 - Added structural regression checks and left real-host readiness and release gates unverified until rerun evidence is available.
+
+
+### 2026-11-12 — Worker liveness and audited Telegram outbox
+- Worker renewal/heartbeat interval reduced to 60s against the explicitly requested 900s lease; added unit regression test.
+- Implemented atomic claim and stale-claim recovery for Telegram outbox, cautious status notifications and safety tests; no secrets sent.
+- Publishing updates emit durable events for reconciliation/success/manual-ready.
+- No live Telegram or platform deployment claim: Laravel tests must pass in GitHub CI and live API integrations are still owner-gated.

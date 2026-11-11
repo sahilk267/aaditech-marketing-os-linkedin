@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\WorkerNode;
+use App\Models\SocialAccount;
 use App\Models\WorkflowEvent;
 use App\Models\WorkflowJob;
 use Illuminate\Console\Command;
@@ -41,11 +42,35 @@ class AadiMaintenance extends Command
         \App\Models\PublishingJob::query()->where('status','sending')
             ->where('updated_at','<',now()->subMinutes(10))
             ->update(['status'=>'needs_reconciliation','last_error'=>'UNCONFIRMED_PROVIDER_OUTCOME']);
+        // Crash recovery for an alert claimed before the process stopped. Telegram
+        // has no send idempotency key, so this is deliberately at-least-once.
+        WorkflowEvent::query()->where('status','sending')
+            ->where('updated_at','<',now()->subMinutes(15))->update(['status'=>'pending']);
+        $threshold=max(1,(int)config('aadi.alerts.queue_backlog_threshold',50));
+        $backlog=WorkflowJob::query()->whereIn('status',['queued','retry_wait'])->count();
+        if ($backlog >= $threshold) {
+            $this->eventOnceToday('workflow.backlog_high','workflow_job',0,['queued'=>$backlog]);
+        }
+        foreach (SocialAccount::query()->where('connection_status','connected')
+            ->whereNotNull('token_expires_at')->where('token_expires_at','<=',now()->addDay())
+            ->get(['id']) as $account) {
+            $this->eventOnceToday('oauth.expiring','social_account',$account->id,[]);
+        }
         DB::table('worker_request_nonces')->where('created_at','<',now()->subMinutes(10))->delete();
         // An expired lease is reclaimed transactionally by the next compatible worker.
         $stalled=WorkflowJob::query()->whereIn('status',['leased','running'])
             ->where('lease_expires_at','<',now())->count();
         $this->info('Offline workers: '.$offline->count().'; expired jobs available for reclaim: '.$stalled);
         return self::SUCCESS;
+    }
+
+    private function eventOnceToday(string $type,string $aggregate,int $id,array $payload):void
+    {
+        $exists=WorkflowEvent::query()->where('event_type',$type)
+            ->where('aggregate_type',$aggregate)->where('aggregate_id',$id)
+            ->where('occurred_at','>=',now('UTC')->startOfDay())->exists();
+        if (!$exists) WorkflowEvent::query()->create(['event_type'=>$type,
+            'aggregate_type'=>$aggregate,'aggregate_id'=>$id,'payload'=>$payload,
+            'occurred_at'=>now(),'status'=>'pending']);
     }
 }

@@ -1,9 +1,13 @@
 import base64,io,unittest
 from unittest.mock import Mock
 from amo_worker.media import media_result
-from amo_worker.main import work_once
+from amo_worker.main import work_once,KEEPALIVE_SECONDS
+from amo_worker.client import REQUESTED_LEASE_SECONDS
 
 class WorkerRuntimeTests(unittest.TestCase):
+    def test_lease_keepalive_margin(self):
+        self.assertLess(KEEPALIVE_SECONDS*3,REQUESTED_LEASE_SECONDS)
+
     def test_creative_contains_svg_png_and_carousel(self):
         r=media_result('Brand','Important update','A short editorial note')
         self.assertTrue(base64.b64decode(r['svg_base64']).startswith(b'<svg'))

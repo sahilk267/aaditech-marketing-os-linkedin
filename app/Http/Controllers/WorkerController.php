@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\WorkerCredential;
+use App\Models\WorkflowEvent;
 use App\Models\WorkerNode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,12 +30,16 @@ class WorkerController extends Controller
         $node = DB::transaction(function () use ($credential, $input): WorkerNode {
             $credential = WorkerCredential::query()->lockForUpdate()->findOrFail($credential->getKey());
             $node = $credential->node ?? new WorkerNode();
+            $wasOffline=!$node->exists || $node->status!=='online';
             $node->fill($input + ['status'=>'online']);
             $node->status='online';
             $node->last_heartbeat_at=now();
             $node->save();
             $credential->worker_node_id=$node->getKey();
             $credential->save();
+            if ($wasOffline) WorkflowEvent::query()->create(['event_type'=>'worker.online',
+                'aggregate_type'=>'worker_node','aggregate_id'=>$node->getKey(),
+                'payload'=>[],'occurred_at'=>now(),'status'=>'pending']);
             return $node;
         });
         return response()->json(['worker_id'=>$node->getKey(),'status'=>'online','server_time'=>now()->toIso8601String()]);
@@ -47,10 +52,14 @@ class WorkerController extends Controller
         $credential = $request->attributes->get('worker_credential');
         $node = $credential->node;
         if (!$node) return response()->json(['message'=>'Register worker first'], 409);
+        $wasOffline=$node->status!=='online';
         $node->status='online';
         $node->last_heartbeat_at=now();
         if (isset($input['worker_version'])) $node->worker_version=$input['worker_version'];
         $node->save();
+        if ($wasOffline) WorkflowEvent::query()->create(['event_type'=>'worker.online',
+            'aggregate_type'=>'worker_node','aggregate_id'=>$node->getKey(),
+            'payload'=>[],'occurred_at'=>now(),'status'=>'pending']);
         return response()->json(['worker_id'=>$node->getKey(),'status'=>'online','server_time'=>now()->toIso8601String()]);
     }
 }

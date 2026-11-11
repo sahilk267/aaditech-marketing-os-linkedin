@@ -48,3 +48,10 @@ Hostinger's current support documentation describes MariaDB on shared/cloud host
 ## Database healthcheck fix (2026-11-12)
 
 The MariaDB 11.4 Docker image uses `healthcheck.sh --connect --innodb_initialized`; it must not inherit MySQL's `mysqladmin` probe, which may be absent. CI now selects the healthcheck by database image and the release bundle uses the MariaDB-native check. The first MySQL 8.0 matrix job passed, while MariaDB container initialization remained pending in the preceding run. This change requires a **fresh GitHub Actions rerun** before calling the MariaDB compatibility/release gate passed.
+
+
+## Worker and notification reliability increment (2026-11-12)
+
+Worker explicitly requests a 900-second lease. Its 240-second keepalive was inside that limit, but could leave an active long-running CPU task appearing offline. The worker now renews its lease and heartbeat every 60 seconds, with a regression test.
+
+Telegram operational outbox now atomically claims alerts, retries unacknowledged deliveries, and recovers stale sending claims. Messages contain only event type and internal numeric ID, never untrusted event payloads or credentials. Publication success/manual fallback/reconciliation and worker reconnect state now emit events; maintenance creates deduplicated backlog and OAuth expiry alerts. Telegram is at-least-once because Telegram offers no caller-supplied idempotency key. The new Laravel tests exercise missing credentials, delivery, retry, and data redaction.
