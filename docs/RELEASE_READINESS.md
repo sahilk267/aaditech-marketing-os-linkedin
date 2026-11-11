@@ -10,7 +10,7 @@ The repository root now contains a consolidated Laravel 13 application in place 
 - One-command `scripts/install.sh` and safe, non-destructive `scripts/deploy.php`, which can create a MySQL schema only when the MySQL account is allowed, migrate/seed and provision initial admin from protected environment. No web-exposed installer or default password.
 - `aadi:doctor` readiness report; `aadi:tick` plans approved research and evidence-backed drafts; authenticated throttled worker tick allows no-Hostinger-cron operation.
 - Lease renewal every 240s during long CPU model tasks; new PNG + three-slide carousel renderer using Pillow with server-side PNG checks; latest-per-post metric aggregation (no cumulative snapshot overcount).
-- New static/worker and Laravel feature test sources and GitHub Actions configuration to execute them on PHP 8.3/8.4 and Python 3.12.
+- New static/worker and Laravel feature test sources and GitHub Actions configuration to execute them on PHP 8.3/8.4 and Python 3.12; CI release artifact embeds Composer `vendor/` so the hosting server does not require Composer.
 
 ## Verified here
 

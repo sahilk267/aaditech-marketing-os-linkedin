@@ -10,3 +10,5 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - Worker scheduler fallback and lease renewal, PNG/carousel renderer, latest cumulative metric logic.
 - Task statuses moved only to In Progress/In Review; **zero new tasks are Verified without integrated test evidence**.
 - Conflict C-001/C-002/C-004/C-005/C-008/C-015 moved to In Review, not Closed. C-003/C-006/C-007/C-009/C-010/C-011/C-012/C-013/C-014/C-016 remain open.
+
+- Added GitHub Actions deployment archive carrying `vendor/` to reduce Hostinger runtime setup; actual Actions run/Composer dependency resolution pending.

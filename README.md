@@ -17,7 +17,7 @@ After deploying code and configuring private `DB_*`, `APP_URL`, and `AADI_ADMIN_
 bash scripts/install.sh
 ```
 
-This installs PHP dependencies, checks requirements, attempts to create the configured MySQL database **only if the supplied MySQL account has CREATE privilege**, applies migrations, seeds the four brands, initializes `APP_KEY` if missing, and builds caches. It does not erase existing data. For noninteractive owner creation, provide a high-entropy password through the protected `AADI_ADMIN_PASSWORD` environment variable (minimum 14 characters); otherwise run `php artisan user:bootstrap-admin owner@your-domain.example` interactively. No default password or public installer exists.
+This uses the prebuilt GitHub release dependencies when bundled (`vendor/`) or installs them via Composer when absent, checks requirements, attempts to create the configured MySQL database **only if the supplied MySQL account has CREATE privilege**, applies migrations, seeds the four brands, initializes `APP_KEY` if missing, and builds caches. It does not erase existing data. For noninteractive owner creation, provide a high-entropy password through the protected `AADI_ADMIN_PASSWORD` environment variable (minimum 14 characters); otherwise run `php artisan user:bootstrap-admin owner@your-domain.example` interactively. No default password or public installer exists.
 
 **Hosting limitations cannot be bypassed:** without working database/server credentials, required PHP modules, and MySQL privileges the installer fails closed with a diagnostic rather than falsely reporting success. Database **tables** are always automatically migrated once connectivity is available. See `docs/DEPLOYMENT_RUNBOOK.md`.
 

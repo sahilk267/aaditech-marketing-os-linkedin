@@ -18,7 +18,7 @@ php artisan aadi:doctor --json
 php artisan route:list
 ```
 
-`install.sh` downloads required framework packages using Composer; runs `scripts/deploy.php --apply --create-database`. Script creates DB if authorized, generates an `APP_KEY` if absent, runs all migrations and four-brand seeder without destructive reset, and builds config/view caches. Existing admin is never overwritten. If admin was not set with secure environment credentials, create interactively:
+`install.sh` reuses bundled framework packages from a CI-built release artifact when present; otherwise it installs them with Composer; runs `scripts/deploy.php --apply --create-database`. Script creates DB if authorized, generates an `APP_KEY` if absent, runs all migrations and four-brand seeder without destructive reset, and builds config/view caches. Existing admin is never overwritten. If admin was not set with secure environment credentials, create interactively:
 
 ```bash
 php artisan user:bootstrap-admin owner@your-domain.example

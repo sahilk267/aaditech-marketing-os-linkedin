@@ -1,0 +1,36 @@
+name: Aadi Marketing OS - Build Deployment Bundle
+on:
+  push:
+    branches: ['main']
+    paths: ['app/**','bootstrap/**','config/**','database/**','routes/**','resources/**','worker/**','scripts/**','artisan','composer.json','.github/workflows/build-release.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, xml, curl, pdo_mysql, fileinfo, openssl
+          tools: composer:v2
+      - name: Install versioned framework dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+      - name: Validate framework can bootstrap
+        run: php artisan route:list
+      - name: Build archive without credentials
+        shell: bash
+        run: |
+          mkdir -p dist
+          tar --exclude='.env' --exclude='.git' --exclude='node_modules' \
+              --exclude='tests' --exclude='dist' --exclude='phase0' \
+              --exclude='phase1' --exclude='phase2plus' --exclude='*.log' \
+              -czf dist/aadi-marketing-os-release.tar.gz \
+              artisan composer.json app bootstrap config database routes resources public worker scripts storage vendor .env.example
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aadi-marketing-os-release-${{ github.sha }}
+          path: dist/aadi-marketing-os-release.tar.gz
+          retention-days: 30
