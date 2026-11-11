@@ -1,0 +1,10 @@
+platform_capability,source_status,external_prerequisites,content_types,verification,safe_default
+LinkedIn organization text,Official source staged; approval pending,w_organization_social + page role,Text,Mock only,Manual-ready until approval
+LinkedIn images/video/docs,Not implemented,Official media access and upload,Media,Not Run,Manual-ready
+Facebook Pages,Manual-only,Approved Page permissions/tokens,Media/Text,Not Run,Manual-ready
+Instagram Professional,Manual-only,Professional account + approved publish permission,Image/Reels,Not Run,Manual-ready
+YouTube,Manual-only,Authorized upload scope + quota/compliance,Video,Not Run,Manual-ready
+Pinterest,Manual-only,Official board/Pin scope,Pins,Not Run,Manual-ready
+Threads,Manual-only,Official Threads access,Text/Media,Not Run,Manual-ready
+TikTok,Manual-only,Official Content Posting API + review,Video,Not Run,Manual-ready
+X,Excluded automatic,Only if free official access verified,Manual package,Not Run,Manual-only

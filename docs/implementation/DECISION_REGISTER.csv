@@ -1,0 +1,15 @@
+id,decision,accountable,status,due_by_gate,safe_default,next_action
+D-001,AadiPro actual products/services,Owner,Open,G02/G11,No invented catalog or product claims,Blocked until owner provides verified offerings
+D-002,Actual Windows desktop OS/disk space,Owner,Open,G04/G11,Do not claim tested worker feasibility before benchmark,Run desktop.ps1 preflight
+D-003,Actual Hostinger PHP/MySQL/cron limits,Owner,Open,G01/G11,Fail deploy if Laravel prerequisites missing,Run Hostinger preflight
+D-004,Current free OpenRouter model IDs/availability,Engineering+Owner,Open,G04/G11,Fail closed on unknown or paid models,Verify catalog every activation
+D-005,Ollama fallback CPU model choice,Owner+Engineering,Open,G04/G11,Choose after quality/CPU/latency benchmark,Benchmark candidate small quantized models
+D-006,Actual platform app approval/scopes,Owner,Open,G08/G11,Manual-ready until specific official permissions,Permission matrix per account/channel
+D-007,Overseas official source allowlists,Owner,Open,G05/G11,No unsupported vacancy/salary/employer/visa claims,Approve sources and freshness policy
+D-008,First live channels per brand,Owner,Open,G08/G11,Implement full adapter surface but only approved channels active,Per-brand channel activation review
+D-009,Composer/Laravel support baseline,Engineering,Proposed,G01,Laravel 13 with PHP >=8.3 subject to actual Hostinger preflight,Pin exact Laravel + Composer lockfile
+D-010,Canonical code layout vs legacy overlays,Engineering,Proposed,G01,"Single deployable app; legacy overlays read-only, never deployed twice",Reconcile and retire overlay install scripts
+D-011,Quota authority and model pricing,Engineering,Proposed,G04,Server quota authority; never use unknown-cost route,Reconcile local worker cache against authoritative ledger
+D-012,LinkedIn version and permissions,Engineering+Owner,Open,G08/G11,Use currently supported official API and approval-scoped versions,Recheck version before go-live; source dated
+D-013,Out-of-scope paid APIs/X auto posting,Owner,Locked,All,"No paid automation, browser bots or unofficial endpoints",Hard guard and manual-ready default
+D-014,Production readiness language,Engineering,Locked,G10/G11,Never say complete based on syntax/unit tests alone,Multi-gate acceptance and evidence needed

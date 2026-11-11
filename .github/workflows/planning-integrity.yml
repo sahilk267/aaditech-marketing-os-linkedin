@@ -1,0 +1,20 @@
+name: Planning Integrity
+on:
+  pull_request:
+    paths: ["docs/implementation/**", ".github/workflows/planning-integrity.yml"]
+  push:
+    branches: [main]
+    paths: ["docs/implementation/**", ".github/workflows/planning-integrity.yml"]
+jobs:
+  validate-tracker:
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate IDs, dependency graph, SRS coverage, and release-state evidence
+        run: |
+          python docs/implementation/validate_tracker.py docs/implementation
+          python -m unittest discover -s docs/implementation/tests -v
