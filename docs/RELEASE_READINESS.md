@@ -44,3 +44,7 @@ Code exists ≠ integration test passes ≠ live environment connected ≠ E2E v
 ## Database compatibility coverage added (2026-11-12)
 
 Hostinger's current support documentation describes MariaDB on shared/cloud hosting, although it provides MySQL-compatible access. CI now tests the Laravel feature suite against **both MySQL 8.0 and MariaDB 11.4**, with the release artifact additionally gated on the MariaDB suite. These are * CI tests*, not a substitute for actual Hostinger PHP/MySQL permissions, migration backup and post-deploy smoke tests.
+
+## Database healthcheck fix (2026-11-12)
+
+The MariaDB 11.4 Docker image uses `healthcheck.sh --connect --innodb_initialized`; it must not inherit MySQL's `mysqladmin` probe, which may be absent. CI now selects the healthcheck by database image and the release bundle uses the MariaDB-native check. The first MySQL 8.0 matrix job passed, while MariaDB container initialization remained pending in the preceding run. This change requires a **fresh GitHub Actions rerun** before calling the MariaDB compatibility/release gate passed.

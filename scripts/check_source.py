@@ -43,3 +43,12 @@ for file in (root/'worker').rglob('*.py'):
                 if isinstance(item,ast.ClassDef):reject_duplicates(item.body,scope+'.'+item.name)
     reject_duplicates(tree.body,file.stem)
 print('PASS: no duplicate worker Python definitions')
+
+# MariaDB 11.4 official image provides healthcheck.sh; mysqladmin is not a portable readiness probe.
+app_ci=(root/'.github/workflows/app-ci.yml').read_text()
+release_ci=(root/'.github/workflows/build-release.yml').read_text()
+for label, content in [('application CI',app_ci),('release CI',release_ci)]:
+    assert 'healthcheck.sh --connect --innodb_initialized' in content, f'{label} must use MariaDB healthcheck.sh'
+assert 'mysqladmin ping' not in release_ci, 'Release builder has only MariaDB, never use mysqladmin healthcheck'
+assert 'phpunit.database.xml' in app_ci, 'DB integration config must trigger application CI'
+print('PASS: MariaDB/MySQL container health checks and DB CI trigger')

@@ -26,3 +26,9 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - Hostinger documentation currently identifies MariaDB for shared/web hosting. Added MySQL 8.0 and MariaDB 11.4 GitHub CI integration jobs and a MariaDB release gate.
 - `phpunit.database.xml` uses disposable CI-only credentials; no production credentials are committed.
 - T031 marked In Progress, decision D-016 recorded. Feature suite must actually pass before gate verification.
+
+
+### 2026-11-12 — MariaDB CI boot readiness fix
+- MySQL 8 matrix passed on commit `6f8f741`; MariaDB service initialization was still in progress.
+- Switched MariaDB health probing to the image's supported `healthcheck.sh --connect --innodb_initialized` in app CI and release workflow; MySQL matrix retains its `mysqladmin` probe.
+- Added structural regression checks and left real-host readiness and release gates unverified until rerun evidence is available.
