@@ -1,0 +1,23 @@
+name: Aadi source checks
+on:
+  push:
+    paths:
+      - 'phase2plus/**'
+      - '.github/workflows/aadi-source-checks.yml'
+  pull_request:
+    paths:
+      - 'phase2plus/**'
+      - '.github/workflows/aadi-source-checks.yml'
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP syntax
+        run: find phase2plus/overlay -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Python standard-library safety tests
+        run: PYTHONPATH=phase2plus/worker python3 -m unittest discover -s phase2plus/worker/tests -v
+      - name: Bytecode compile
+        run: python3 -m compileall -q phase2plus/worker
+      - name: Overlay package checks
+        run: python3 phase2plus/scripts/check_package.py

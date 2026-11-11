@@ -18,3 +18,10 @@ Four separated brands: Aadi Tech Solutions, Overseas Job Placement, AadiPro, and
 **Do not deploy this repository root as a Laravel app.** Start from a newly generated Laravel 13 project with compatible PHP, Composer, required extensions, and MySQL, then dry-run `phase1/scripts/apply_overlay.py` against the inspected skeleton. Follow [`phase1/README.md`](phase1/README.md) for details.
 
 No credentials or `.env` files belong in Git. Environment variable examples intentionally contain only blank or placeholder values. This initial repository push is source-only; full Laravel/MySQL integration tests, Hostinger access verification, desktop Ollama benchmark, and social OAuth approvals are still pending. Do not assume automated posting is enabled.
+
+
+## Phase 2–9 source modules
+
+Further source implementation is in [phase2plus/README.md](phase2plus/README.md), including durable workflow jobs, free-only AI/Ollama fallback, public research, content/evidence gates, SVG media, conditional official LinkedIn **text-only** posting, manual social packages, analytics, and operations tooling.
+
+**Status:** source-only and syntax/unit-tested in the development sandbox; Laravel/MySQL integration tests and live platform OAuth/API/Hostinger verification remain pending. Apply Phase 1 then Phase 2+ overlays to an inspected Laravel skeleton. Never assume other social channels have auto-publishing permission. No credentials or customer data should be committed.
