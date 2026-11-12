@@ -116,3 +116,7 @@ New OfflineJourneyTest checks the complete native browser/API path on a disposab
 - No-AI no-worker browser/API journey: `tests/Feature/Phase2Plus/OfflineJourneyTest.php` added, acceptance remains pending exact commit CI and controlled browser verification.
 
 These are **CI/staging approximations**, not live Hostinger, desktop uptime, OAuth provider approval, all-provider analytics or 100% finished scope evidence. Preserve remaining gaps in the tracker.
+
+## Brand capability readiness panel (2026-11-12)
+
+Brand overview now reports offline drafts, SVG generation, manual packages, worker heartbeat, fresh zero-priced AI catalog, approved source count and currently approved same-brand publishing platforms without exposing tokens. A brand-scope regression test rejects other-brand access or token leakage. Results describe **configured code paths**, not proof of live remote provider authorization or uptime; CI validation required.

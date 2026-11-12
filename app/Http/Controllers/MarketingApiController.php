@@ -45,6 +45,25 @@ class MarketingApiController extends Controller
             'queued'=>WorkflowJob::query()->where('brand_id',$brand->id)->whereIn('status',['queued','leased','running','retry_wait'])->count(),
             'review_queue'=>ContentItem::query()->where('brand_id',$brand->id)->where('status','needs_review')->count(),
             'scheduled'=>PublishingJob::query()->where('brand_id',$brand->id)->where('status','scheduled')->count(),
+            // Every capability is a non-sensitive readiness signal, not a
+            // promise that an external provider granted its API permissions.
+            'capabilities'=>[
+                'offline_drafts'=>true,
+                'offline_svg'=>true,
+                'manual_publish_package'=>true,
+                'worker_connected'=>\App\Models\WorkerNode::query()
+                    ->where('status','online')->where('last_heartbeat_at','>=',now()->subMinutes(5))->exists(),
+                'free_ai_catalog_ready'=>\App\Models\AiModel::query()
+                    ->where('provider','openrouter')->where('is_enabled',true)->where('is_free',true)
+                    ->where('input_price',0)->where('output_price',0)
+                    ->where('last_verified_at','>=',now()->subDay())->exists(),
+                'approved_sources'=>BrandSource::query()->where('brand_id',$brand->id)->where('allowed',true)->count(),
+                'official_publish_accounts'=>SocialAccount::query()->where('brand_id',$brand->id)
+                    ->where('connection_status','connected')->where('api_access_approved',true)
+                    ->get(['platform','token_expires_at'])->filter(fn ($account)=>
+                        !$account->token_expires_at || $account->token_expires_at->gt(now()->addMinutes(5)))
+                    ->pluck('platform')->unique()->values()->all(),
+            ],
         ]);
     }
     public function sources(Request $r, Brand $brand): JsonResponse
