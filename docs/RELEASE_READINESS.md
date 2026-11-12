@@ -88,3 +88,7 @@ The previously SVG-only private asset download path now supports same-brand PNG 
 ## Meta Facebook Pages text publishing (2026-11-12)
 
 Added an official Graph API text Page adapter with exact page ID, version, Page-token, expiry and scope checks. Only an admin-approved, connected Facebook Page with all required scopes can be scheduled for API publishing; image/video remain manual-ready. Post IDs must be explicitly confirmed; ambiguous responses enter reconciliation, never blind retry. Added HTTP-mocked contract/approval tests. This is source and CI contract coverage only: Meta OAuth setup, real Page account approval and live publishing are NOT verified.
+
+## Meta Facebook Pages OAuth connection (2026-11-12)
+
+Added authenticated admin-only Facebook Page OAuth, one-time state with replay prevention, provider permission validation, Page-list verification and encrypted Page token storage. Tokens are never returned to browser; connected accounts remain `api_access_approved=false` until separate owner verification. The Page lookup currently covers the first 100 Pages; pagination and permission revocation lifecycle require additional work. HTTP-mocked feature tests added; Meta app review and live Page authorization remain unverified.

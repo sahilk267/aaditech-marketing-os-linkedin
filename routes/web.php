@@ -46,6 +46,8 @@ Route::middleware(['auth','throttle:90,1'])->prefix('api/v1/brands/{brand}')->gr
 Route::middleware('auth')->group(function(): void {
     Route::post('/brands/{brand}/linkedin/connect',[\App\Http\Controllers\LinkedInOAuthController::class,'connect']);
     Route::get('/auth/linkedin/callback',[\App\Http\Controllers\LinkedInOAuthController::class,'callback']);
+    Route::post('/brands/{brand}/facebook/connect',[\App\Http\Controllers\FacebookPageOAuthController::class,'connect'])->middleware('throttle:5,1');
+    Route::get('/auth/facebook/callback',[\App\Http\Controllers\FacebookPageOAuthController::class,'callback'])->middleware('throttle:10,1');
 });
 Route::get('/brands/{brand}/marketing',\App\Http\Controllers\MarketingDashboardController::class)->middleware('auth')->name('brands.marketing');
 Route::get('/brands/{brand}/assets/{id}/download',\App\Http\Controllers\MediaDownloadController::class)

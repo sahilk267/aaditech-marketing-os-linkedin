@@ -97,6 +97,15 @@
 <pre id="sources" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><pre id="research" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>
 <div class="card"><h2>Content review and calendar</h2><button type="button" data-load="content">Refresh drafts</button> <button type="button" data-load="calendar">Calendar</button>
 <pre id="content" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><pre id="calendar" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>
+@if(auth()->user()->isAdmin())
+<div class="card"><h2>Connect a Facebook Page (official Meta OAuth)</h2>
+<p class="muted">Requires a Meta app with the proper Page permissions, HTTPS redirect URI and Page administrator authorization. Connection never approves posting automatically.</p>
+<form method="POST" action="{{ url('/brands/'.$brand->id.'/facebook/connect') }}">
+@csrf
+<label>Facebook Page numeric ID <input name="page_id" required pattern="[1-9][0-9]{0,20}" maxlength="21"></label>
+<button type="submit">Authorize Facebook Page</button>
+</form></div>
+@endif
 <div class="card"><h2>Reports and social connectors</h2><button type="button" data-load="reports/weekly" data-target="report">Weekly report</button> <button type="button" data-load="social-accounts" data-target="accounts">Connected accounts</button>
 <pre id="report" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><pre id="accounts" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>
 <div class="card"><h2>Publishing reconciliation (admin only)</h2>

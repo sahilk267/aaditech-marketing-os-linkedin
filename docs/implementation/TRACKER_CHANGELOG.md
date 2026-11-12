@@ -64,3 +64,5 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - **2026-11-12 · manual media package · pending CI:** Secure SVG/PNG/carousel downloads with checksum/size validation, same-brand authorization and test cases. G07/G08 remain pending official E2E verification.
 
 - **2026-11-12 · Facebook Page text adapter · pending CI:** Official Meta Graph API v26-compatible text adapter, scope/approval gate, idempotent uncertain outcome handling and contract tests. T099 in progress, not complete; actual OAuth and Meta app approval pending.
+
+- **2026-11-12 · Facebook OAuth flow · pending CI:** Admin-only Page OAuth with state anti-replay, permissions verification and encrypted token persistence; operator browser form and contract tests. Meta app approval and live Page validation remain G11 blockers.
