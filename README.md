@@ -61,3 +61,7 @@ Database compatibility CI includes MySQL 8.0 and MariaDB 11.4, plus the default 
 ## Offline-first publishing fallback
 
 The marketing screen now includes a manual draft form that requires neither OpenRouter nor an installed worker. Drafts are scoped to the selected brand, checked for exact duplicates, and saved as `needs_review` with `risk_level=high`; an admin must review claims/evidence before publication. When no approved official platform API is available, the existing manual-ready publishing package remains the safe supported route. This is a usable fallback, **not** a substitute for authorized API publishing or semantic fact verification.
+
+## Facebook Pages official connector (owner activation later)
+
+For a Meta-approved business app, set `META_APP_ID`, `META_APP_SECRET`, `META_REDIRECT_URI=https://YOUR_DOMAIN/auth/facebook/callback` and the verified `META_GRAPH_VERSION` in your private `.env`. On the brand marketing screen an admin can connect the owned Facebook Page by numeric Page ID, approve the account only after Meta permissions are confirmed, and publish approved **text** posts through the official Graph API. Without permission/connection the flow stays `manual_ready`. Image/video Meta publication, live app-review proof and real Page success have **not** been verified.

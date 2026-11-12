@@ -20,6 +20,7 @@ class AadiDoctor extends Command
             'storage_writable'=>is_writable(storage_path())&&is_writable(base_path('bootstrap/cache')),
             'strict_free_ai'=>false, // computed from persisted model prices below
             'oauth_linkedin_configured'=>(bool)config('aadi.linkedin.client_id')&&(bool)config('aadi.linkedin.client_secret')&&(bool)config('aadi.linkedin.version'),
+            'oauth_facebook_configured'=>(bool)config('aadi.meta.app_id')&&(bool)config('aadi.meta.app_secret')&&(bool)config('aadi.meta.redirect_uri')&&(bool)config('aadi.meta.graph_version'),
             'telegram_configured'=>(bool)config('aadi.telegram.token')&&(bool)config('aadi.telegram.chat_id'),
         ];
         try {
