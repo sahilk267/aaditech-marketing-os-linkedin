@@ -34,5 +34,24 @@ class BrandReadinessTest extends TestCase
             ->assertJsonCount(0,'capabilities.official_publish_accounts');
         $this->assertStringNotContainsString('a-secret-that-must-never-leak',$resp->getContent());
         $this->getJson('/api/v1/brands/'.$another->id.'/overview')->assertForbidden();
+
+        // A forged or legacy approved flag cannot advertise a missing official adapter.
+        SocialAccount::query()->create([
+            'brand_id'=>$brand->id,'platform'=>'instagram','account_name'=>'Unimplemented Connector',
+            'external_account_id'=>'9876543210', 'scopes'=>['other_scope'],
+            'connection_status'=>'connected','api_access_approved'=>true,
+        ]);
+        $this->getJson('/api/v1/brands/'.$brand->id.'/overview')
+            ->assertJsonCount(0,'capabilities.official_publish_accounts');
+        SocialAccount::query()->create([
+            'brand_id'=>$brand->id,'platform'=>'facebook','account_name'=>'Owned Page',
+            'external_account_id'=>'1234567890',
+            'scopes'=>['pages_manage_posts','pages_show_list','pages_read_engagement'],
+            'connection_status'=>'connected','api_access_approved'=>true,
+            'token_expires_at'=>now()->addDay(),
+        ]);
+        $this->getJson('/api/v1/brands/'.$brand->id.'/overview')
+            ->assertJsonPath('capabilities.official_publish_accounts.0','facebook')
+            ->assertJsonCount(1,'capabilities.official_publish_accounts');
     }
 }
