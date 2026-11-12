@@ -57,3 +57,7 @@ Authenticated brand marketing screens include source registration/approval, perm
 **Source does not equal 100% deployment readiness:** unresolved provider permissions, hosting grants, remote desktop operation, full Laravel/MySQL/Windows tests, and remaining advanced channel features are still tracked in the gate register. No code can grant OAuth scopes or database privileges that the hosting/platform account does not possess.
 
 Database compatibility CI includes MySQL 8.0 and MariaDB 11.4, plus the default SQLite test run. Production release bundles are gated on MariaDB integration before publication.
+
+## Offline-first publishing fallback
+
+The marketing screen now includes a manual draft form that requires neither OpenRouter nor an installed worker. Drafts are scoped to the selected brand, checked for exact duplicates, and saved as `needs_review` with `risk_level=high`; an admin must review claims/evidence before publication. When no approved official platform API is available, the existing manual-ready publishing package remains the safe supported route. This is a usable fallback, **not** a substitute for authorized API publishing or semantic fact verification.

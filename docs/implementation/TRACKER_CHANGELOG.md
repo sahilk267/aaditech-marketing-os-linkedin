@@ -56,3 +56,5 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - Rejects provider-controlled upload URLs unless on strict `www.linkedin.com/dms-uploads/` HTTPS allowlist; verifies local brand asset checksum and PNG type, and disallows redirects.
 - Added mocked successful media-post/failed unsafe URL regression tests and pre-schedule asset checks.
 - T098 is In Progress, not verified: LinkedIn video/document/real OAuth and provider media API integration remain outstanding.
+
+- **2026-11-12 · offline-first fallback · pending CI:** Add no-AI manual draft creation, role/brand isolation, duplicate prevention, admin review gate and feature tests. This improves G06 but does not certify G06/G10/G11 or close external publishing/deployment blockers.

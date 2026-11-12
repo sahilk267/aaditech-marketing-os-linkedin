@@ -12,6 +12,18 @@
 <label>Type <select name="source_type"><option value="rss">RSS</option><option value="official_blog">Official blog</option><option value="public_page">Public page</option><option value="manual">Manual</option></select></label>
 <label>Trust tier <select name="trust_tier"><option>A</option><option>B</option><option selected>C</option><option>D</option></select></label>
 <button type="submit">Register source</button></form></div>
+<div class="card"><h2>Manual draft — works without AI or desktop worker</h2>
+<p class="muted">Create an original draft immediately. No source or provider access required. Admin review and factual-evidence checks are mandatory before publication.</p>
+<form data-action="/content/manual" id="manualDraftForm">
+<label>Title <input name="title" maxlength="255" required></label>
+<label>Topic <input name="topic" maxlength="255" required></label>
+<label>Body <textarea name="body" minlength="40" maxlength="12000" rows="7" required></textarea></label>
+<label>Platform <select name="platform"><option>linkedin</option><option>facebook</option><option>instagram</option><option>youtube</option><option>pinterest</option><option>threads</option><option>tiktok</option></select></label>
+<label>Language <input name="language" value="en" required maxlength="12"></label>
+<label>Content type <select name="content_type"><option>educational_post</option><option>text</option><option>image_post</option><option>visual_post</option><option>carousel_outline</option><option>blog_outline</option></select></label>
+<label>Hashtags, comma-separated <input name="hashtags" placeholder="Marketing, ITTips"></label>
+<button type="submit">Save draft for admin review</button>
+</form></div>
 <div class="card"><h2>Generate draft</h2>
 <form data-action="/content/generate" id="generateForm">
 <label>Topic<input name="topic" required maxlength="255"></label>
@@ -115,6 +127,7 @@
   document.querySelectorAll('form[data-action]').forEach(form=>form.addEventListener('submit',async e=>{
     e.preventDefault();const fd=new FormData(form);const data=Object.fromEntries(fd.entries());
     if (form.id==='generateForm')data.source_ids=String(data.source_ids||'').split(',').map(s=>Number(s.trim())).filter(Number.isInteger).filter(n=>n>0);
+    if (form.id==='manualDraftForm')data.hashtags=String(data.hashtags||'').split(',').map(s=>s.trim().replace(/^#/,'')).filter(Boolean);
     try { const response=await call(form.dataset.action,data);feedback.textContent=JSON.stringify(response);load('overview','overview'); }
     catch(err){ feedback.textContent=err.message; }
   }));
