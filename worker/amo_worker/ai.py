@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime,timezone
 from decimal import Decimal,InvalidOperation
 import json, os, sqlite3, threading, time
+from contextlib import closing
 from pathlib import Path
 import requests
 
@@ -26,11 +27,11 @@ class DailyCap:
     def __init__(self,path:Path|str,limit:int):
         self.path=str(path);self.limit=max(1,min(limit,100000));self._lock=threading.Lock()
         Path(self.path).parent.mkdir(parents=True,exist_ok=True)
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute('CREATE TABLE IF NOT EXISTS requests (day TEXT PRIMARY KEY, count INTEGER NOT NULL)')
     def take(self)->bool:
         day=datetime.now(timezone.utc).strftime('%Y-%m-%d')
-        with self._lock,sqlite3.connect(self.path) as db:
+        with self._lock, closing(sqlite3.connect(self.path)) as db, db:
             db.execute('BEGIN IMMEDIATE')
             count=db.execute('SELECT count FROM requests WHERE day=?',(day,)).fetchone()
             if count and count[0]>=self.limit:return False
