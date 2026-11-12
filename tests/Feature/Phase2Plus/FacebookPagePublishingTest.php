@@ -40,7 +40,7 @@ class FacebookPagePublishingTest extends TestCase
             'scheduled_at'=>now()->subMinute(),'status'=>'scheduled','idempotency_key'=>'fb-page-text-test',
         ]);
         config()->set('aadi.meta.graph_version','v26.0');
-        Http::fake(['graph.facebook.com/*'=>Http::response(['id'=>'1234567890_55555'],200)]);
+        Http::fake(['https://graph.facebook.com/*'=>Http::response(['id'=>'1234567890_55555'],200)]);
         $result=app(PublishService::class)->publish($job->id);
         $this->assertSame('succeeded',$result['status']);
         $this->assertDatabaseHas('publishing_jobs',['id'=>$job->id,'platform_post_id'=>'1234567890_55555']);
@@ -57,6 +57,7 @@ class FacebookPagePublishingTest extends TestCase
             'external_account_id'=>'2233445566','scopes'=>['pages_show_list'],
             'connection_status'=>'connected','api_access_approved'=>false,
         ]);
+        Http::fake();
         $this->actingAs($admin)->postJson("/api/v1/brands/{$brand->id}/social-accounts/{$account->id}/approval",[
             'approved'=>true,'verification_note'=>'This account is not permitted to publish Page posts yet.',
         ])->assertStatus(422);
