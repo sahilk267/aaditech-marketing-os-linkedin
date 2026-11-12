@@ -160,14 +160,24 @@ class MarketingApiController extends Controller
             $current = ContentItem::query()->where('brand_id',$brand->id)->lockForUpdate()->findOrFail($item->id);
             $policy->requirePublishable($current);
             $seal = $integrity->fingerprint($current, $in['platform']);
-            $publication=PublishingJob::query()->create([
-                'brand_id'=>$brand->id,'content_item_id'=>$item->id,'social_account_id'=>$account?->id,
-                'platform'=>$in['platform'],'scheduled_at'=>$in['scheduled_at'],
-                'status'=>$supported?'scheduled':'manual_ready',
-                'request_metadata'=>['content_fingerprint'=>$seal,'snapshot_version'=>'publication-v1'],
-                'idempotency_key'=>hash('sha256',json_encode([$brand->id,$current->id,$in['platform'],$in['scheduled_at'],$account?->id,$seal],JSON_THROW_ON_ERROR)),
-            ]);
-            if ($supported) $engine->enqueue('publish.post',['publishing_job_id'=>$publication->id],$brand->id,'publish:'.$publication->id,$in['scheduled_at']);
+            $key = hash('sha256',json_encode([
+                $brand->id,$current->id,$in['platform'],$in['scheduled_at'],$account?->id,$seal,
+            ],JSON_THROW_ON_ERROR));
+            $publication=PublishingJob::query()->firstOrCreate(
+                ['idempotency_key'=>$key],
+                [
+                    'brand_id'=>$brand->id,'content_item_id'=>$current->id,'social_account_id'=>$account?->id,
+                    'platform'=>$in['platform'],'scheduled_at'=>$in['scheduled_at'],
+                    'status'=>$supported?'scheduled':'manual_ready',
+                    'request_metadata'=>['content_fingerprint'=>$seal,'snapshot_version'=>'publication-v1'],
+                ]
+            );
+            if ((int)$publication->brand_id!==(int)$brand->id || (int)$publication->content_item_id!==(int)$current->id ||
+                $publication->platform!==$in['platform']) abort(409,'Publishing key conflict');
+            if ($supported && $publication->wasRecentlyCreated) {
+                $engine->enqueue('publish.post',['publishing_job_id'=>$publication->id],$brand->id,
+                    'publish:'.$publication->id,$in['scheduled_at']);
+            }
             return $publication;
         });
         return response()->json(['publishing_job_id'=>$p->id,'status'=>$p->status],201);
