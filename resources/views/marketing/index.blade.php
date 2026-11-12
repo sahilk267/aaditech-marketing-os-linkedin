@@ -45,6 +45,13 @@
 <form id="researchVerifyForm" data-job-action="researchVerify">
 <label>Research item ID<input type="number" name="item_id" min="1" required></label>
 <button type="submit">Verify evidence after reading original</button></form></div>
+<div class="card"><h2>Instant manual-ready package</h2>
+<p class="muted">For approved content only: prepare a copyable native-platform post without AI, OAuth or the desktop worker. It never publishes automatically.</p>
+<form data-job-action="manualNow">
+<label>Approved content ID <input name="content_id" type="number" min="1" required></label>
+<label>Platform <select name="platform"><option>linkedin</option><option>facebook</option><option>instagram</option><option>youtube</option><option>pinterest</option><option>threads</option><option>tiktok</option></select></label>
+<button type="submit">Prepare manual publishing package now</button>
+</form></div>
 <div class="card"><h2>Content approval and creative rendering</h2>
 <form data-job-action="contentApprove">
 <label>Draft content ID<input type="number" name="content_id" min="1" required></label>
@@ -138,6 +145,7 @@
     contentApprove:d=>'/content/'+d.content_id+'/approve',
     contentRender:d=>'/content/'+d.content_id+'/render',
     contentSchedule:d=>'/content/'+d.content_id+'/schedule',
+    manualNow:d=>'/content/'+d.content_id+'/manual-ready',
     manualPackage:d=>'/manual-package/'+d.publication_id,
     analyticsImport:d=>'/analytics/import',
     accountApprove:d=>'/social-accounts/'+d.account_id+'/approval',

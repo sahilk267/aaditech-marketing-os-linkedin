@@ -33,6 +33,7 @@ Route::middleware(['auth','throttle:90,1'])->prefix('api/v1/brands/{brand}')->gr
     Route::post('/content/{contentId}/approve',[\App\Http\Controllers\MarketingApiController::class,'contentApprove'])->whereNumber('contentId');
     Route::post('/content/{contentId}/render',[\App\Http\Controllers\MarketingApiController::class,'render'])->whereNumber('contentId');
     Route::post('/content/{contentId}/schedule',[\App\Http\Controllers\MarketingApiController::class,'schedule'])->whereNumber('contentId');
+    Route::post('/content/{contentId}/manual-ready',[\App\Http\Controllers\ManualPublishingController::class,'store'])->whereNumber('contentId');
     Route::get('/calendar',[\App\Http\Controllers\MarketingApiController::class,'calendar']);
     Route::get('/publishing/reconciliation',[\App\Http\Controllers\PublicationReconciliationController::class,'index']);
     Route::post('/publishing/{id}/reconcile',[\App\Http\Controllers\PublicationReconciliationController::class,'resolve'])->whereNumber('id');

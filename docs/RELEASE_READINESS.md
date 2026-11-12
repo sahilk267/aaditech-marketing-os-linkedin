@@ -76,3 +76,7 @@ This **does not implement** LinkedIn video, document, multi-image or carousel pu
 ## Offline-first manual authoring increment (2026-11-12)
 
 Added `ManualContentController`, `POST /api/v1/brands/{brand}/content/manual`, a browser form and feature tests for immediate brand-scoped draft creation without an AI provider or desktop worker. All manual drafts require admin approval; no unverifiable claim is automatically marked verified. Duplicate exact drafts within a brand/platform are rejected. CI execution and actual staging verification are required; no assertion of 100% live readiness follows from source changes.
+
+## Instant native-platform publishing package (2026-11-12)
+
+Added a non-worker/non-OAuth flow: approved same-brand content can be moved directly to a manual-ready publication with a stable idempotency key, durable event and copyable package URL. Cannot be used for unreviewed content or across brand permissions. The feature is covered by Laravel tests; current GitHub CI and live staging results must be checked before verification. This is deliberately **not** an automatic API publisher.

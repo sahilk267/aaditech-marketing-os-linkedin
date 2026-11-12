@@ -58,3 +58,5 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - T098 is In Progress, not verified: LinkedIn video/document/real OAuth and provider media API integration remain outstanding.
 
 - **2026-11-12 · offline-first fallback · pending CI:** Add no-AI manual draft creation, role/brand isolation, duplicate prevention, admin review gate and feature tests. This improves G06 but does not certify G06/G10/G11 or close external publishing/deployment blockers.
+
+- **2026-11-12 · manual package mode · pending CI:** Immediate approved-content manual-ready endpoint/UI, stable duplicate key, event and access-control feature tests. No live provider credentials required; G08 remains partially implemented for official automated adapters.
