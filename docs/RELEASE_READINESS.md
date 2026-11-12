@@ -100,3 +100,7 @@ Added a server-side deterministic SVG renderer for approved brand content. It re
 ## Immutable publication approval snapshot (2026-11-12)
 
 Scheduled official publication now records a SHA-256 seal over the approved content, variants, evidence, approval actor/time and linked media hashes. Before API submission, the posting service checks that seal and blocks stale or legacy-unsealed scheduled entries as `blocked_review`, without contacting the provider. New schedules use deterministic keys so identical requests do not create multiple queue publications. The manual package also refuses changed content. Laravel regressions cover changed content, missing seals and duplicate schedules. **Remaining:** deep edit-vs-send concurrency fencing under parallel transactions, real provider idempotency/timeout drills, and verified operator correction UI. No claim of zero duplicate posts in all network failures.
+
+## Portable Windows worker (2026-11-12)
+
+Added prebuilt Windows executable CI, no-Python PowerShell installer and frozen executable config path support, with worker tests and packaged binary smoke test. Until the Windows workflow succeeds its executable is not verified. Actual Windows Task Scheduler and Ollama/desktop availability remain owner setup checks.

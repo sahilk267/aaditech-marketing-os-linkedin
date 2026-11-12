@@ -1,0 +1,47 @@
+name: Aadi Marketing OS - Portable Windows Worker
+on:
+  push:
+    branches: ['main']
+    paths: ['worker/**','.github/workflows/worker-windows-release.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-worker:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install requirements and run worker tests
+        shell: pwsh
+        run: |
+          python -m pip install -r worker/requirements.txt "pyinstaller>=6.13,<7"
+          Push-Location worker
+          python -m unittest discover -s tests -v
+          if ($LASTEXITCODE -ne 0) { throw 'Python tests failed' }
+          Pop-Location
+      - name: Build and smoke-test standalone exe
+        shell: pwsh
+        run: |
+          python -m PyInstaller --clean --noconfirm --onefile --name aadi-worker worker/launcher.py
+          if ($LASTEXITCODE -ne 0) { throw 'PyInstaller build failed' }
+          & .\dist\aadi-worker.exe --help
+          if ($LASTEXITCODE -ne 0) { throw 'Binary smoke test failed' }
+      - name: Package checked executable, installer and checksum
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path package | Out-Null
+          Copy-Item .\dist\aadi-worker.exe .\package\aadi-worker.exe
+          Copy-Item .\worker\install_windows_binary.ps1 .\package\install_windows_binary.ps1
+          Copy-Item .\worker\.env.worker.example .\package\.env.worker.example
+          Copy-Item .\worker\README.md .\package\README.md
+          (Get-FileHash .\package\aadi-worker.exe -Algorithm SHA256).Hash.ToLower() |
+            Out-File -FilePath .\package\SHA256.txt -Encoding ascii -NoNewline
+          Compress-Archive -Path .\package\* -DestinationPath .\aadi-worker-windows-x64.zip -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aadi-worker-windows-x64
+          path: aadi-worker-windows-x64.zip
+          retention-days: 30

@@ -18,3 +18,7 @@ cd worker
 The installer creates a Python virtual environment, runs unit tests, asks once for the app HTTPS URL and worker credential, stores them in a user-restricted `.env.worker` file and registers a Windows at-logon scheduled task. It does not automatically install Ollama, grant OAuth scopes, or open inbound ports. The task runs only while the Windows user session is active; use a properly configured service for always-on headless operation. Keep a backup/re-issuance plan for the worker credential.
 
 For a manual session, `worker/.venv/Scripts/python.exe -m amo_worker.main --forever` reads `.env.worker` automatically. Rotate the credential if the local config is exposed. The app reports missing Ollama/provider configuration as an operational blocker rather than fabricating content.
+
+## Portable Windows worker (no local Python needed)
+
+The Portable Windows Worker GitHub workflow builds and smoke-tests a standalone Windows executable, packages its SHA-256 hash, and includes install_windows_binary.ps1. Extract the CI artifact in a private directory and run that installer. It requests your HTTPS app URL and existing scoped worker token, stores the credential with user-only Windows permissions, and registers an at-logon task. This is an unsigned executable (Windows may display SmartScreen); it does not install Ollama or grant social OAuth, and requires a logged-in user session for the at-logon task.

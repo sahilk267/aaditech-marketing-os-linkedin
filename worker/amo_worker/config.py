@@ -4,7 +4,7 @@ The worker never receives account OAuth tokens or private customer credentials.
 The .env.worker file is a local owner-provided secret store and must not enter Git.
 """
 from __future__ import annotations
-import json, os, re, stat
+import json, os, re, stat, sys
 from pathlib import Path
 
 ALLOWED={
@@ -14,7 +14,12 @@ ALLOWED={
 }
 
 def load_worker_env(path:Path|str|None=None)->None:
-    file=Path(path) if path is not None else Path(__file__).resolve().parents[1]/'.env.worker'
+    if path is not None:
+        file = Path(path)
+    elif getattr(sys, 'frozen', False):
+        file = Path(sys.executable).resolve().parent / '.env.worker'
+    else:
+        file = Path(__file__).resolve().parents[1] / '.env.worker'
     if not file.exists():return
     if not file.is_file() or file.stat().st_size>16384:
         raise ValueError('WORKER_ENV_INVALID')
