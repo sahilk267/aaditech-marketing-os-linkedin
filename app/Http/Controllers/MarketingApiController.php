@@ -59,9 +59,14 @@ class MarketingApiController extends Controller
                     ->where('last_verified_at','>=',now()->subDay())->exists(),
                 'approved_sources'=>BrandSource::query()->where('brand_id',$brand->id)->where('allowed',true)->count(),
                 'official_publish_accounts'=>SocialAccount::query()->where('brand_id',$brand->id)
+                    ->whereIn('platform',['linkedin','facebook'])
                     ->where('connection_status','connected')->where('api_access_approved',true)
-                    ->get(['platform','token_expires_at'])->filter(fn ($account)=>
-                        !$account->token_expires_at || $account->token_expires_at->gt(now()->addMinutes(5)))
+                    ->get(['platform','token_expires_at','scopes'])->filter(fn ($account)=>
+                        (!$account->token_expires_at || $account->token_expires_at->gt(now()->addMinutes(5))) &&
+                        (($account->platform==='linkedin' &&
+                          in_array('w_organization_social',$account->scopes??[],true)) ||
+                         ($account->platform==='facebook' &&
+                          count(array_diff(['pages_show_list','pages_read_engagement','pages_manage_posts'],$account->scopes??[]))===0)))
                     ->pluck('platform')->unique()->values()->all(),
             ],
         ]);
