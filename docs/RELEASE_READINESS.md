@@ -80,3 +80,7 @@ Added `ManualContentController`, `POST /api/v1/brands/{brand}/content/manual`, a
 ## Instant native-platform publishing package (2026-11-12)
 
 Added a non-worker/non-OAuth flow: approved same-brand content can be moved directly to a manual-ready publication with a stable idempotency key, durable event and copyable package URL. Cannot be used for unreviewed content or across brand permissions. The feature is covered by Laravel tests; current GitHub CI and live staging results must be checked before verification. This is deliberately **not** an automatic API publisher.
+
+## Secure media download coverage (2026-11-12)
+
+The previously SVG-only private asset download path now supports same-brand PNG and carousel slides with SHA-256, byte-size and dimensions integrity checks. `manual-package` JSON includes branded media download links. Download/brand-permission feature tests added. Source changes require current CI and live file-storage verification; this does not imply video generation or automatic media publishing support.

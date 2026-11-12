@@ -174,8 +174,25 @@ class MarketingApiController extends Controller
         $p=PublishingJob::query()->where('brand_id',$brand->id)->where('status','manual_ready')->findOrFail($publicationId);
         $item=ContentItem::query()->where('brand_id',$brand->id)->findOrFail($p->content_item_id);
         $variant=($item->platform_variants??[])[$p->platform]??[];
-        return response()->json(['platform'=>$p->platform,'caption'=>is_array($variant)?($variant['body']??$item->body):$item->body,
-            'hashtags'=>$item->hashtags,'cta'=>$item->cta,'status'=>'manual_ready']);
+        $assets = \App\Models\MediaAsset::query()
+            ->where('brand_id', $brand->id)
+            ->where('content_item_id', $item->id)
+            ->whereIn('asset_type', ['svg', 'png', 'carousel'])
+            ->orderBy('id')->get(['id', 'asset_type', 'mime_type', 'width', 'height'])
+            ->map(fn ($asset) => [
+                'id' => $asset->id, 'type' => $asset->asset_type,
+                'mime_type' => $asset->mime_type,
+                'width' => $asset->width, 'height' => $asset->height,
+                'download_url' => '/brands/'.$brand->id.'/assets/'.$asset->id.'/download',
+            ])->all();
+        return response()->json([
+            'platform' => $p->platform,
+            'caption' => is_array($variant) ? ($variant['body'] ?? $item->body) : $item->body,
+            'hashtags' => $item->hashtags,
+            'cta' => $item->cta,
+            'status' => 'manual_ready',
+            'media' => $assets,
+        ]);
     }
     public function analyticsImport(Request $r,Brand $brand): JsonResponse
     {
