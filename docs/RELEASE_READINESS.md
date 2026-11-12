@@ -84,3 +84,7 @@ Added a non-worker/non-OAuth flow: approved same-brand content can be moved dire
 ## Secure media download coverage (2026-11-12)
 
 The previously SVG-only private asset download path now supports same-brand PNG and carousel slides with SHA-256, byte-size and dimensions integrity checks. `manual-package` JSON includes branded media download links. Download/brand-permission feature tests added. Source changes require current CI and live file-storage verification; this does not imply video generation or automatic media publishing support.
+
+## Meta Facebook Pages text publishing (2026-11-12)
+
+Added an official Graph API text Page adapter with exact page ID, version, Page-token, expiry and scope checks. Only an admin-approved, connected Facebook Page with all required scopes can be scheduled for API publishing; image/video remain manual-ready. Post IDs must be explicitly confirmed; ambiguous responses enter reconciliation, never blind retry. Added HTTP-mocked contract/approval tests. This is source and CI contract coverage only: Meta OAuth setup, real Page account approval and live publishing are NOT verified.

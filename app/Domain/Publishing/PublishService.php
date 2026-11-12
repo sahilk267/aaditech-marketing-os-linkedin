@@ -25,7 +25,7 @@ class PublishService
             if ((int)$content->brand_id !==(int)$job->brand_id) abort(409,'Cross-brand publishing denied');
             $this->policy->requirePublishable($content);
             $account=$job->social_account_id ? $job->socialAccount : null;
-            if (!$account|| (int)$account->brand_id !== (int)$job->brand_id||$job->platform!=='linkedin'|| !$account->api_access_approved||$account->connection_status!=='connected') {
+            if (!$account|| (int)$account->brand_id !== (int)$job->brand_id||!in_array($job->platform,['linkedin','facebook'],true)||$account->platform!==$job->platform|| !$account->api_access_approved||$account->connection_status!=='connected') {
                 $job->status='manual_ready'; $job->save();
                 $this->event('publication.manual_ready',$job);
                 return ['manual_ready'=>true,'job'=>$job];
@@ -51,7 +51,7 @@ class PublishService
             // Provider may have published before HTTP timeout or malformed response.
             // No blind retries; operator must reconcile using approved read access.
             $job->status='needs_reconciliation';
-            $job->last_error=substr(preg_replace('/[^A-Za-z0-9_.-]/','_', $e instanceof ValidationException ? 'LINKEDIN_VALIDATION' : $e->getMessage()),0,96);
+            $job->last_error=substr(preg_replace('/[^A-Za-z0-9_.-]/','_', $e instanceof ValidationException ? 'PLATFORM_VALIDATION' : $e->getMessage()),0,96);
             DB::transaction(function () use ($job):void {
                 $job->save();
                 $this->event('publication.needs_reconciliation',$job);

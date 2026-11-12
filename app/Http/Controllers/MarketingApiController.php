@@ -149,7 +149,13 @@ class MarketingApiController extends Controller
             $account=SocialAccount::query()->where('brand_id',$brand->id)->findOrFail($in['social_account_id']);
             if ($account->platform!==$in['platform']) abort(422,'Account platform mismatch');
         }
-        $supported=$in['platform']==='linkedin'&&$account&&$account->connection_status==='connected'&&$account->api_access_approved;
+        $supported=$account && $account->connection_status==='connected' && $account->api_access_approved &&
+            (($in['platform']==='linkedin') ||
+             ($in['platform']==='facebook' &&
+              in_array($item->content_type,['text','educational_post'],true) &&
+              in_array('pages_manage_posts',$account->scopes??[],true) &&
+              in_array('pages_show_list',$account->scopes??[],true) &&
+              in_array('pages_read_engagement',$account->scopes??[],true)));
         $p=DB::transaction(function() use ($in,$brand,$item,$account,$supported,$engine): PublishingJob {
             $publication=PublishingJob::query()->create([
                 'brand_id'=>$brand->id,'content_item_id'=>$item->id,'social_account_id'=>$account?->id,

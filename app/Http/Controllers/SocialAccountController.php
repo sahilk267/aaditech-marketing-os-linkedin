@@ -24,8 +24,15 @@ class SocialAccountController extends Controller
             'verification_note'=>['required_if:approved,1','nullable','string','min:30','max:1500'],
         ]);
         $account=SocialAccount::query()->where('brand_id',$brand->id)->findOrFail($id);
-        if ($in['approved'] && ($account->platform!=='linkedin'||$account->connection_status!=='connected'||
-            !in_array('w_organization_social',$account->scopes??[],true))) abort(422,'Official write approval and scope required');
+        $allowedScopes = ($account->platform==='linkedin' &&
+            in_array('w_organization_social',$account->scopes??[],true)) ||
+            ($account->platform==='facebook' &&
+             in_array('pages_manage_posts',$account->scopes??[],true) &&
+             in_array('pages_show_list',$account->scopes??[],true) &&
+             in_array('pages_read_engagement',$account->scopes??[],true));
+        if ($in['approved'] && ($account->connection_status!=='connected'||!$allowedScopes)) {
+            abort(422,'Official write approval and scope required');
+        }
         // Admin can assert approval only after documented app verification/test. Audit the decision.
         $account->api_access_approved=$in['approved'];$account->save();
         \App\Models\AuditLog::query()->forceCreate([
