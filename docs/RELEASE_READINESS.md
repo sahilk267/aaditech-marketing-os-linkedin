@@ -104,3 +104,7 @@ Scheduled official publication now records a SHA-256 seal over the approved cont
 ## Portable Windows worker (2026-11-12)
 
 Added prebuilt Windows executable CI, no-Python PowerShell installer and frozen executable config path support, with worker tests and packaged binary smoke test. Until the Windows workflow succeeds its executable is not verified. Actual Windows Task Scheduler and Ollama/desktop availability remain owner setup checks.
+
+## Offline editorial end-to-end regression (2026-11-12)
+
+New OfflineJourneyTest checks the complete native browser/API path on a disposable database with no AI, worker, OAuth or live external calls: brand-scoped manual draft, accountable admin approval, PHP SVG creative generation, authenticated media download and copyable manual-ready package. This is framework integration evidence after CI passes, not proof of real Hostinger/Web UI accessibility or autonomous social posting.
