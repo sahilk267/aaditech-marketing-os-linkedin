@@ -45,6 +45,12 @@
 <form id="researchVerifyForm" data-job-action="researchVerify">
 <label>Research item ID<input type="number" name="item_id" min="1" required></label>
 <button type="submit">Verify evidence after reading original</button></form></div>
+<div class="card"><h2>Render brand creative without AI or worker</h2>
+<p class="muted">Creates an SVG card for approved content using your brand colors. No external service is called; safe copy/download.</p>
+<form data-job-action="offlineRender">
+<label>Approved content ID <input type="number" min="1" name="content_id" required></label>
+<button type="submit">Create offline SVG creative</button>
+</form></div>
 <div class="card"><h2>Instant manual-ready package</h2>
 <p class="muted">For approved content only: prepare a copyable native-platform post without AI, OAuth or the desktop worker. It never publishes automatically.</p>
 <form data-job-action="manualNow">
@@ -155,6 +161,7 @@
     contentRender:d=>'/content/'+d.content_id+'/render',
     contentSchedule:d=>'/content/'+d.content_id+'/schedule',
     manualNow:d=>'/content/'+d.content_id+'/manual-ready',
+    offlineRender:d=>'/content/'+d.content_id+'/render-offline',
     manualPackage:d=>'/manual-package/'+d.publication_id,
     analyticsImport:d=>'/analytics/import',
     accountApprove:d=>'/social-accounts/'+d.account_id+'/approval',

@@ -92,3 +92,7 @@ Added an official Graph API text Page adapter with exact page ID, version, Page-
 ## Meta Facebook Pages OAuth connection (2026-11-12)
 
 Added authenticated admin-only Facebook Page OAuth, one-time state with replay prevention, provider permission validation, Page-list verification and encrypted Page token storage. Tokens are never returned to browser; connected accounts remain `api_access_approved=false` until separate owner verification. The Page lookup currently covers the first 100 Pages; pagination and permission revocation lifecycle require additional work. HTTP-mocked feature tests added; Meta app review and live Page authorization remain unverified.
+
+## PHP-only creative generation (2026-11-12)
+
+Added a server-side deterministic SVG renderer for approved brand content. It requires no AI key, Python worker, GD or media API; the SVG is XML-escaped, uses validated brand colors, is stored by checksum and is available through authenticated download/manual packages. Laravel tests cover cross-role blocks, no-worker rendering, idempotency and SVG escaping. This is a basic creative fallback, not high-end image/video generation. CI and real hosting file permissions still require verification.

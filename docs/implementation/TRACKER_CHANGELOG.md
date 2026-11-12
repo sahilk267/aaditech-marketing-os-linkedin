@@ -68,3 +68,5 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - **2026-11-12 · Facebook OAuth flow · pending CI:** Admin-only Page OAuth with state anti-replay, permissions verification and encrypted token persistence; operator browser form and contract tests. Meta app approval and live Page validation remain G11 blockers.
 
 - **2026-11-12 · Meta implementation tracking · CI pending:** T099 moved to In Progress with explicit source/test evidence and no live certification. Doctor reports optional Facebook OAuth configuration readiness separately from core environment readiness.
+
+- **2026-11-12 · offline SVG rendering · pending CI:** Adds a no-worker PHP creative generator and UI; tests for safe escaping, brand authorization, checksum-based persistence. G07 improves, high-end video and professional design templates remain open.
