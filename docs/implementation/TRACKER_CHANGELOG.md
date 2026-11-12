@@ -74,3 +74,5 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - **2026-11-12 · approval snapshot / duplicate guard · pending CI:** Added `PublicationIntegrity` fingerprint for content/media, fail-closed publishing on missing/stale seal, deterministic scheduled keys, manual package stale-check and Laravel tests. T089/T094/T107 advanced to In Progress; G08/G10 remain unverified for live race/recovery testing.
 
 - **2026-11-12 · E2E offline journey · pending CI:** Add full manual draft → approval → SVG → manual package Laravel feature regression with no external network calls. E2E-032 has source test evidence; staging/browser verification and complete AI-based journey still open.
+
+- **2026-11-12 · CI evidence reconciliation:** Application CI 43216301822 passed for approval snapshot/deduplicated schedules; Windows portable worker workflow 43217292345 passed and produced artifact 13942804382 after Windows SQLite handle fix. Tasks T017/T031/T042/T089/T094/T107/T122 updated with narrowly scoped evidence; no gate was marked Verified. E2E-032 retains Not Run because full browser/research/report journey is not yet proven.

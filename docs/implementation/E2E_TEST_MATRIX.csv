@@ -30,7 +30,7 @@ E2E-028,G08,Facebook/Instagram/YouTube/Pinterest/Threads/TikTok capability,Enabl
 E2E-029,G08,Manual-ready package export,"Text/media/claims/CTA exported, no unofficial posting",acceptance,Not Run,Staging/Controlled test,,Engineering
 E2E-030,G09,Analytics repeated cumulative snapshots,No overcount; last snapshot per post correctly counted,integration,Not Run,Staging/Controlled test,,Engineering
 E2E-031,G09,Missing/unavailable metrics and CSV import,"Null not zero, provenance and duplicate rows handled",integration,Not Run,Staging/Controlled test,,Engineering
-E2E-032,G09,Dashboard complete editor journey,Source -> draft -> review -> render -> schedule -> report,acceptance,Not Run,Staging/Controlled test,,Engineering
+E2E-032,G09,Dashboard complete editor journey,Source -> draft -> review -> render -> schedule -> report,acceptance,Not Run,Staging/Controlled test,OfflineJourneyTest.php covers no-AI manual draft to approved creative package in CI; full research and reporting browser E2E pending,Engineering
 E2E-033,G09,Telegram alert delivery without sensitive data,Event sent/redacted and retry/dedupe safe,security,Not Run,Staging/Controlled test,,Engineering
 E2E-034,G10,Hostinger cron unavailable simulation,Due work still handled safely; health warns,chaos,Not Run,Staging/Controlled test,,Engineering
 E2E-035,G10,Encrypted database/media restore,"Recovered content, key custody and checksum verified",recovery,Not Run,Staging/Controlled test,,Engineering

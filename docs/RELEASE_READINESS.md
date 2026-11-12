@@ -108,3 +108,11 @@ Added prebuilt Windows executable CI, no-Python PowerShell installer and frozen 
 ## Offline editorial end-to-end regression (2026-11-12)
 
 New OfflineJourneyTest checks the complete native browser/API path on a disposable database with no AI, worker, OAuth or live external calls: brand-scoped manual draft, accountable admin approval, PHP SVG creative generation, authenticated media download and copyable manual-ready package. This is framework integration evidence after CI passes, not proof of real Hostinger/Web UI accessibility or autonomous social posting.
+
+## Verified CI evidence for 2026-11-12 hardening
+
+- Approval snapshot and deterministic schedule deduplication: GitHub Actions application CI run `43216301822` success; release smoke installation run `43216301791` success.
+- Windows portable executable: workflow run `43217292345` success, artifact `13942804382`. Initial run found and fixed Windows SQLite open-handle cleanup (worker/amo_worker/ai.py).
+- No-AI no-worker browser/API journey: `tests/Feature/Phase2Plus/OfflineJourneyTest.php` added, acceptance remains pending exact commit CI and controlled browser verification.
+
+These are **CI/staging approximations**, not live Hostinger, desktop uptime, OAuth provider approval, all-provider analytics or 100% finished scope evidence. Preserve remaining gaps in the tracker.
