@@ -35,7 +35,7 @@ class PublicationIntegrity
             'risk_level' => $item->risk_level,
             'status' => $item->status,
             'approved_by' => $item->approved_by === null ? null : (int) $item->approved_by,
-            'approved_at' => $item->approved_at?->toISOString(),
+            'approved_at' => $item->approved_at?->format('Y-m-d H:i:s'),
             'media_sha256' => $assetChecksums,
         ];
 
