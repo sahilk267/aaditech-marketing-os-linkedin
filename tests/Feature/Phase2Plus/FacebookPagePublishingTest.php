@@ -38,6 +38,7 @@ class FacebookPagePublishingTest extends TestCase
             'brand_id'=>$brand->id,'content_item_id'=>$item->id,
             'social_account_id'=>$account->id,'platform'=>'facebook',
             'scheduled_at'=>now()->subMinute(),'status'=>'scheduled','idempotency_key'=>'fb-page-text-test',
+            'request_metadata'=>['content_fingerprint'=>app(\App\Domain\Publishing\PublicationIntegrity::class)->fingerprint($item,'facebook')],
         ]);
         config()->set('aadi.meta.graph_version','v26.0');
         Http::fake(['https://graph.facebook.com/*'=>Http::response(['id'=>'1234567890_55555'],200)]);

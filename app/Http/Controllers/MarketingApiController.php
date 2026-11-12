@@ -132,7 +132,7 @@ class MarketingApiController extends Controller
         $job=$engine->enqueue('media.render',['content_item_id'=>$item->id],$brand->id,'render:'.$brand->id.':'.$item->id);
         return response()->json(['job_id'=>$job->id],202);
     }
-    public function schedule(Request $r,Brand $brand,int $contentId,ContentPolicy $policy,JobEngine $engine): JsonResponse
+    public function schedule(Request $r,Brand $brand,int $contentId,ContentPolicy $policy,JobEngine $engine, \App\Domain\Publishing\PublicationIntegrity $integrity): JsonResponse
     {
         $this->access($r,$brand,true);
         $in=$r->validate(['platform'=>['required','in:linkedin,facebook,instagram,youtube,pinterest,threads,tiktok'],
@@ -156,12 +156,16 @@ class MarketingApiController extends Controller
               in_array('pages_manage_posts',$account->scopes??[],true) &&
               in_array('pages_show_list',$account->scopes??[],true) &&
               in_array('pages_read_engagement',$account->scopes??[],true)));
-        $p=DB::transaction(function() use ($in,$brand,$item,$account,$supported,$engine): PublishingJob {
+        $p=DB::transaction(function() use ($in,$brand,$item,$account,$supported,$engine,$policy,$integrity): PublishingJob {
+            $current = ContentItem::query()->where('brand_id',$brand->id)->lockForUpdate()->findOrFail($item->id);
+            $policy->requirePublishable($current);
+            $seal = $integrity->fingerprint($current, $in['platform']);
             $publication=PublishingJob::query()->create([
                 'brand_id'=>$brand->id,'content_item_id'=>$item->id,'social_account_id'=>$account?->id,
                 'platform'=>$in['platform'],'scheduled_at'=>$in['scheduled_at'],
                 'status'=>$supported?'scheduled':'manual_ready',
-                'idempotency_key'=>(string)\Illuminate\Support\Str::uuid(),
+                'request_metadata'=>['content_fingerprint'=>$seal,'snapshot_version'=>'publication-v1'],
+                'idempotency_key'=>hash('sha256',json_encode([$brand->id,$current->id,$in['platform'],$in['scheduled_at'],$account?->id,$seal],JSON_THROW_ON_ERROR)),
             ]);
             if ($supported) $engine->enqueue('publish.post',['publishing_job_id'=>$publication->id],$brand->id,'publish:'.$publication->id,$in['scheduled_at']);
             return $publication;
@@ -179,6 +183,9 @@ class MarketingApiController extends Controller
         $this->access($r,$brand);
         $p=PublishingJob::query()->where('brand_id',$brand->id)->where('status','manual_ready')->findOrFail($publicationId);
         $item=ContentItem::query()->where('brand_id',$brand->id)->findOrFail($p->content_item_id);
+        app(ContentPolicy::class)->requirePublishable($item);
+        $expected = ($p->request_metadata ?? [])['content_fingerprint'] ?? null;
+        if ($expected && !hash_equals((string)$expected, app(\App\Domain\Publishing\PublicationIntegrity::class)->fingerprint($item,$p->platform))) abort(409,'Content changed since package was prepared; create a new reviewed package');
         $variant=($item->platform_variants??[])[$p->platform]??[];
         $assets = \App\Models\MediaAsset::query()
             ->where('brand_id', $brand->id)

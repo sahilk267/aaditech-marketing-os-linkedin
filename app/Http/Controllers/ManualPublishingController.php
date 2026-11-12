@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ManualPublishingController extends Controller
 {
-    public function store(Request $request, Brand $brand, int $contentId, ContentPolicy $policy): JsonResponse
+    public function store(Request $request, Brand $brand, int $contentId, ContentPolicy $policy, \App\Domain\Publishing\PublicationIntegrity $integrity): JsonResponse
     {
         $actor = $request->user();
         if (!$actor || !$actor->hasBrandAccess($brand) || !in_array($actor->role, ['admin', 'editor'], true)) {
@@ -29,9 +29,10 @@ class ManualPublishingController extends Controller
         $item = ContentItem::query()->where('brand_id', $brand->id)->findOrFail($contentId);
         $policy->requirePublishable($item);
         $platform = $validated['platform'];
-        $key = 'manual:' . $brand->id . ':' . $item->id . ':' . $platform;
+        $seal = $integrity->fingerprint($item, $platform);
+        $key = 'manual:' . $brand->id . ':' . $item->id . ':' . $platform . ':' . $seal;
 
-        $publication = DB::transaction(function () use ($brand, $item, $platform, $key): PublishingJob {
+        $publication = DB::transaction(function () use ($brand, $item, $platform, $key, $seal): PublishingJob {
             $publication = PublishingJob::query()->firstOrCreate(
                 ['idempotency_key' => $key],
                 [
@@ -41,7 +42,7 @@ class ManualPublishingController extends Controller
                     'platform' => $platform,
                     'scheduled_at' => now(),
                     'status' => 'manual_ready',
-                    'request_metadata' => ['mode' => 'manual', 'creator' => 'first_party'],
+                    'request_metadata' => ['mode' => 'manual', 'creator' => 'first_party', 'content_fingerprint' => $seal],
                 ]
             );
             if ((int) $publication->brand_id !== (int) $brand->id ||

@@ -67,6 +67,7 @@ class ContentPublishingTest extends TestCase
             'brand_id'=>$brand->id,'content_item_id'=>$item->id,
             'social_account_id'=>$account->id,'platform'=>'linkedin','scheduled_at'=>now()->subMinute(),
             'status'=>'scheduled','idempotency_key'=>'linkedin-test',
+            'request_metadata'=>['content_fingerprint'=>app(\App\Domain\Publishing\PublicationIntegrity::class)->fingerprint($item,'linkedin')],
         ]);
         config()->set('aadi.linkedin.version','202603');
         Http::fake(['*'=>Http::response([],201)]); // No x-restli-id confirmation

@@ -70,3 +70,5 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - **2026-11-12 · Meta implementation tracking · CI pending:** T099 moved to In Progress with explicit source/test evidence and no live certification. Doctor reports optional Facebook OAuth configuration readiness separately from core environment readiness.
 
 - **2026-11-12 · offline SVG rendering · pending CI:** Adds a no-worker PHP creative generator and UI; tests for safe escaping, brand authorization, checksum-based persistence. G07 improves, high-end video and professional design templates remain open.
+
+- **2026-11-12 · approval snapshot / duplicate guard · pending CI:** Added `PublicationIntegrity` fingerprint for content/media, fail-closed publishing on missing/stale seal, deterministic scheduled keys, manual package stale-check and Laravel tests. T089/T094/T107 advanced to In Progress; G08/G10 remain unverified for live race/recovery testing.

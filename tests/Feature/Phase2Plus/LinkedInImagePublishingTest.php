@@ -98,7 +98,8 @@ class LinkedInImagePublishingTest extends TestCase
             'api_access_approved'=>true,'token_expires_at'=>now()->addDay()]);
         $post=PublishingJob::create(['brand_id'=>$brand->id,'content_item_id'=>$content->id,
             'social_account_id'=>$account->id,'platform'=>'linkedin','scheduled_at'=>now()->subMinute(),
-            'status'=>'scheduled','idempotency_key'=>'image-'.str()->random(12)]);
+            'status'=>'scheduled','idempotency_key'=>'image-'.str()->random(12),
+            'request_metadata'=>['content_fingerprint'=>app(\App\Domain\Publishing\PublicationIntegrity::class)->fingerprint($content,'linkedin')]]);
         return [$post,$png];
     }
 }

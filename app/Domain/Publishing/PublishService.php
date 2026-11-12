@@ -11,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 class PublishService
 {
-    public function __construct(private ContentPolicy $policy, private PlatformRegistry $registry) { }
+    public function __construct(private ContentPolicy $policy, private PlatformRegistry $registry, private PublicationIntegrity $integrity) { }
 
     public function publish(int $id): array
     {
@@ -30,11 +30,24 @@ class PublishService
                 $this->event('publication.manual_ready',$job);
                 return ['manual_ready'=>true,'job'=>$job];
             }
+            // A scheduled post is bound to the approved content and media snapshot.
+            // No fingerprint means a legacy unsealed request: never trust it for an automatic send.
+            $seal = ($job->request_metadata ?? [])['content_fingerprint'] ?? null;
+            $current = $this->integrity->fingerprint($content, $job->platform);
+            if (!is_string($seal) || !preg_match('/^[a-f0-9]{64}$/D', $seal) ||
+                !hash_equals($seal, $current)) {
+                $job->status = 'blocked_review';
+                $job->last_error = 'CONTENT_APPROVAL_SNAPSHOT_STALE';
+                $job->save();
+                $this->event('publication.blocked_review', $job);
+                return ['blocked_review' => true, 'job' => $job];
+            }
             $job->status='sending'; $job->attempt_count++; $job->save();
             return ['send'=>true,'job'=>$job];
         });
         if (isset($state['done'])) return ['status'=>'succeeded','platform_post_id'=>$state['job']->platform_post_id];
         if (isset($state['manual_ready'])) return ['status'=>'manual_ready'];
+        if (isset($state['blocked_review'])) return ['status'=>'blocked_review','reason'=>'CONTENT_APPROVAL_SNAPSHOT_STALE'];
         /** @var PublishingJob $job */
         $job=$state['job'];
         try {

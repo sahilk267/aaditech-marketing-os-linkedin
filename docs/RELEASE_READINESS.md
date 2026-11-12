@@ -96,3 +96,7 @@ Added authenticated admin-only Facebook Page OAuth, one-time state with replay p
 ## PHP-only creative generation (2026-11-12)
 
 Added a server-side deterministic SVG renderer for approved brand content. It requires no AI key, Python worker, GD or media API; the SVG is XML-escaped, uses validated brand colors, is stored by checksum and is available through authenticated download/manual packages. Laravel tests cover cross-role blocks, no-worker rendering, idempotency and SVG escaping. This is a basic creative fallback, not high-end image/video generation. CI and real hosting file permissions still require verification.
+
+## Immutable publication approval snapshot (2026-11-12)
+
+Scheduled official publication now records a SHA-256 seal over the approved content, variants, evidence, approval actor/time and linked media hashes. Before API submission, the posting service checks that seal and blocks stale or legacy-unsealed scheduled entries as `blocked_review`, without contacting the provider. New schedules use deterministic keys so identical requests do not create multiple queue publications. The manual package also refuses changed content. Laravel regressions cover changed content, missing seals and duplicate schedules. **Remaining:** deep edit-vs-send concurrency fencing under parallel transactions, real provider idempotency/timeout drills, and verified operator correction UI. No claim of zero duplicate posts in all network failures.
