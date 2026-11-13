@@ -107,6 +107,27 @@ class ContentRevisionTest extends TestCase
         }
     }
 
+    public function test_reapproved_identical_copy_can_relink_existing_svg(): void
+    {
+        Storage::fake('local');
+        $brand=Brand::query()->create(['name'=>'Tech','slug'=>'tech','brand_config'=>[]]);
+        $content=$this->approvedPost($brand);
+        $originalBody=$content->body;
+        $admin=User::factory()->create(['role'=>'admin','is_active'=>true]);
+        $base='/api/v1/brands/'.$brand->id.'/content/'.$content->id;
+        $this->actingAs($admin)->postJson($base.'/render-offline')->assertCreated();
+        $this->patchJson($base,['body'=>'A different infrastructure checklist that needs a fresh explicit approval.'])->assertOk();
+        $this->postJson($base.'/approve',[])->assertOk();
+        $this->patchJson($base,['body'=>$originalBody])->assertOk();
+        $this->postJson($base.'/approve',[])->assertOk();
+        $result=$this->postJson($base.'/render-offline')->assertOk()->assertJsonPath('status','ready');
+        $this->assertDatabaseCount('media_assets',1);
+        $this->assertDatabaseHas('media_assets',[
+            'id'=>$result->json('media_asset_id'),'brand_id'=>$brand->id,
+            'content_item_id'=>$content->id,
+        ]);
+    }
+
     public function test_cross_brand_and_read_only_users_cannot_edit(): void
     {
         $brand=Brand::query()->create(['name'=>'Tech','slug'=>'tech','brand_config'=>[]]);

@@ -61,7 +61,7 @@ class OfflineCreativeController extends Controller
                 abort(409,'Content changed while rendering; regenerate after approval');
             }
             if (!Storage::disk('local')->put($path, $svg)) abort(500, 'Unable to store offline SVG');
-            return MediaAsset::query()->firstOrCreate([
+            $asset = MediaAsset::query()->firstOrCreate([
                 'brand_id' => $brand->id, 'checksum' => $checksum, 'storage_path' => $path,
             ], [
                 'content_item_id' => $content->id, 'asset_type' => 'svg',
@@ -70,6 +70,19 @@ class OfflineCreativeController extends Controller
                 'license_source' => 'owner_generated',
                 'metadata' => ['renderer' => 'php_offline_svg_v1'],
             ]);
+            // Reusing the exact same creative after a new human approval must
+            // relink an old, detached asset rather than silently losing it.
+            if (!$asset->wasRecentlyCreated) {
+                if ($asset->content_item_id !== null &&
+                    (int)$asset->content_item_id !== (int)$content->id) {
+                    abort(409, 'Asset belongs to another content item');
+                }
+                if ($asset->content_item_id === null) {
+                    $asset->content_item_id = $content->id;
+                    $asset->save();
+                }
+            }
+            return $asset;
         });
         return response()->json([
             'media_asset_id' => $asset->id,
