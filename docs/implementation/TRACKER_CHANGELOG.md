@@ -78,3 +78,9 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - **2026-11-12 · CI evidence reconciliation:** Application CI 43216301822 passed for approval snapshot/deduplicated schedules; Windows portable worker workflow 43217292345 passed and produced artifact 13942804382 after Windows SQLite handle fix. Tasks T017/T031/T042/T089/T094/T107/T122 updated with narrowly scoped evidence; no gate was marked Verified. E2E-032 retains Not Run because full browser/research/report journey is not yet proven.
 
 - **2026-11-12 · per-brand readiness signals · pending CI:** Added capability indicators to the existing overview dashboard and tests for role/brand isolation and credential redaction. T115/T118 source progress recorded, not operational acceptance.
+
+
+## 2026-11-13 — Governance evidence reconciliation and content revision
+- G00 task IDs T002-T008 reviewed against live canonical ownership, route/migration checks, source and traceability documents. Stale Not Started statuses changed only to In Progress or In Review; T001 remains Not Started pending accountable owner signoff.
+- T072 started with safe same-brand PATCH revisions, auditing, asset invalidation, and revoked scheduled/manual posts. Independent concurrency/real platform tests pending. E2E-018 remains Not Run and C-014 remains In Review.
+- No tasks have been declared Verified from source alone. Status changes are implementation tracking, not full acceptance.

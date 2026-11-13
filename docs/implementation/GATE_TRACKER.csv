@@ -1,5 +1,5 @@
 gate_id,name,prerequisites,exit_criteria,status,signoff_owner,evidence,review_date
-G00,Baseline & scope governance,,"SRS-to-code inventory, conflict list and frozen scope approved; repository baseline repeatable",Not Started,Engineering + Owner,,
+G00,Baseline & scope governance,,"SRS-to-code inventory, conflict list and frozen scope approved; repository baseline repeatable",In Progress,Engineering + Owner,"Existing owner, conflict, decision, traceability registers reconciled; scope owner signoff and SHA ledger still open",2026-11-13
 G01,Unified Laravel bootstrap,G00,"Single application boots; routes, commands, providers, migrations and tests discovered",In Review,Engineering + Owner,Source changes in canonical repository root; staging/Laravel E2E validation pending,
 G02,"Identity, brand integrity & data",G01,"Policies, brand scoping, seeding, migrations and replay protections pass in MySQL",In Progress,Engineering + Owner,Source changes in canonical repository root; staging/Laravel E2E validation pending,
 G03,Durable workflow + worker,G02,"Concurrent claims, crash recovery, leases, outbox and idempotency proven",In Progress,Engineering + Owner,Source changes in canonical repository root; staging/Laravel E2E validation pending,
