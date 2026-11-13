@@ -26,13 +26,17 @@ class ManualPublishingController extends Controller
         $validated = $request->validate([
             'platform' => ['required', 'in:linkedin,facebook,instagram,youtube,pinterest,threads,tiktok'],
         ]);
-        $item = ContentItem::query()->where('brand_id', $brand->id)->findOrFail($contentId);
-        $policy->requirePublishable($item);
         $platform = $validated['platform'];
-        $seal = $integrity->fingerprint($item, $platform);
-        $key = 'manual:' . $brand->id . ':' . $item->id . ':' . $platform . ':' . $seal;
-
-        $publication = DB::transaction(function () use ($brand, $item, $platform, $key, $seal): PublishingJob {
+        // Lock content before publication creation. Concurrent revisions cannot
+        // create a new manual-ready package from a stale approved copy.
+        $publication = DB::transaction(function () use (
+            $brand, $contentId, $platform, $policy, $integrity
+        ): PublishingJob {
+            $item = ContentItem::query()->where('brand_id', $brand->id)
+                ->lockForUpdate()->findOrFail($contentId);
+            $policy->requirePublishable($item);
+            $seal = $integrity->fingerprint($item, $platform);
+            $key = 'manual:' . $brand->id . ':' . $item->id . ':' . $platform . ':' . $seal;
             $publication = PublishingJob::query()->firstOrCreate(
                 ['idempotency_key' => $key],
                 [
@@ -61,7 +65,7 @@ class ManualPublishingController extends Controller
                 ]);
             }
             return $publication;
-        });
+        },3);
         return response()->json([
             'publication_id' => $publication->id,
             'status' => $publication->status,
