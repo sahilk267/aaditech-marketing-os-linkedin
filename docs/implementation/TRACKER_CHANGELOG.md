@@ -86,3 +86,9 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - No tasks have been declared Verified from source alone. Status changes are implementation tracking, not full acceptance.
 
 - **2026-11-13 · identity and brand role reconciliation:** T020/T021/T022/T026/T027 move from stale Not Started to In Progress based on existing canonical middleware/controllers and expanded AuthenticationTest, BrandAccessTest and ManualDraftTest negative tests. E2E-002/003/004 retain Not Run until full scenario execution and production policy coverage. No task marked Verified.
+
+
+## 2026-11-13 — Claim-level evidence attestation implementation
+- T062/T063/T064/T067 moved to In Progress. Added ClaimEvidenceGate and ClaimAttestationController with draft citations, admin verdict, excerpt presence check, source/body hash binding and fail-closed send-time validation.
+- ClaimAttestationTest.php negative/positive cases passed in GitHub Actions application CI run 43403634588. C-006 is In Review, not Closed. E2E-016 remains Not Run with a PHP test evidence link; semantic entailment without accountable human judgment is not done.
+- Added CLAIM_REVIEW_CONTRACT.md with routes, limitations and strict reapproval behavior. No hosting credentials, paid AI model or unsupported social adapter introduced.
