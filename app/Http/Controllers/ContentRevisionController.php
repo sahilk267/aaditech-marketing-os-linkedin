@@ -20,6 +20,34 @@ use Illuminate\Validation\ValidationException;
  */
 class ContentRevisionController extends Controller
 {
+    public function history(Request $request, Brand $brand, int $contentId): JsonResponse
+    {
+        if (!$request->user()?->hasBrandAccess($brand)) abort(403);
+        $item = ContentItem::query()->where('brand_id', $brand->id)->findOrFail($contentId);
+        $history = ContentReview::query()
+            ->where('content_item_id', $item->id)
+            ->where('review_type', 'human_revision')
+            ->orderByDesc('id')->paginate(30, ['id', 'reviewer_id', 'reviewed_at', 'findings']);
+        $history->getCollection()->transform(fn (ContentReview $review) => [
+            'revision_id' => $review->id,
+            'reviewer_id' => $review->reviewer_id,
+            'recorded_at' => $review->reviewed_at?->toISOString(),
+            'previous_snapshot' => ($review->findings ?? [])['previous_snapshot'] ?? null,
+            'previous_hash' => ($review->findings ?? [])['previous_hash'] ?? null,
+            'new_hash' => ($review->findings ?? [])['new_hash'] ?? null,
+            'changed_fields' => ($review->findings ?? [])['changed_fields'] ?? [],
+        ]);
+        return response()->json([
+            'content_id' => $item->id,
+            'current' => $item->only([
+                'title', 'topic', 'body', 'hook', 'cta', 'hashtags', 'source_refs',
+                'claim_evidence', 'platform_variants', 'status', 'content_hash',
+                'approved_by', 'approved_at',
+            ]),
+            'history' => $history,
+        ]);
+    }
+
     public function update(Request $request, Brand $brand, int $contentId): JsonResponse
     {
         $actor = $request->user();
@@ -69,6 +97,14 @@ class ContentRevisionController extends Controller
                 'content_id' => $item->id, 'status' => $item->status, 'changed' => false,
             ]);
 
+            // Preserve the previous editorial revision before invalidating approval.
+            // Store only in content_reviews (not duplicated into operational telemetry).
+            $previousSnapshot = $item->only([
+                'title', 'topic', 'content_type', 'language', 'hook', 'body', 'cta',
+                'hashtags', 'source_refs', 'claim_evidence', 'platform_variants',
+                'risk_level', 'status', 'approved_by', 'approved_at',
+                'quality_score', 'content_hash',
+            ]);
             $before = $item->content_hash;
             foreach ($changes as $field => $value) $item->{$field} = $value;
             $item->status = 'needs_review';
@@ -116,7 +152,8 @@ class ContentRevisionController extends Controller
             ContentReview::query()->create([
                 'content_item_id' => $item->id,
                 'review_type' => 'human_revision', 'result' => 'pending',
-                'findings' => $meta, 'reviewer_id' => $actor->id, 'reviewed_at' => now(),
+                'findings' => $meta + ['previous_snapshot' => $previousSnapshot],
+                'reviewer_id' => $actor->id, 'reviewed_at' => now(),
             ]);
             AuditLog::query()->forceCreate([
                 'user_id' => $actor->id, 'actor_type' => 'user',

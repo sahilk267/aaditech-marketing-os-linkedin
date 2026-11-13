@@ -128,6 +128,32 @@ class ContentRevisionTest extends TestCase
         ]);
     }
 
+    public function test_revision_history_preserves_prior_copy_and_is_brand_isolated(): void
+    {
+        $brand=Brand::query()->create(['name'=>'Tech','slug'=>'tech','brand_config'=>[]]);
+        $other=Brand::query()->create(['name'=>'Other','slug'=>'other','brand_config'=>[]]);
+        $content=$this->approvedPost($brand);
+        $prior=$content->body;
+        $admin=User::factory()->create(['role'=>'admin','is_active'=>true]);
+        $base='/api/v1/brands/'.$brand->id.'/content/'.$content->id;
+        $replacement='Updated guidance about reviewing infrastructure before a scheduled change and validating controls.';
+        $this->actingAs($admin)->patchJson($base,['body'=>$replacement])->assertOk();
+        $this->getJson($base.'/history')->assertOk()
+            ->assertJsonPath('current.body',$replacement)
+            ->assertJsonPath('history.total',1)
+            ->assertJsonPath('history.data.0.previous_snapshot.body',$prior)
+            ->assertJsonPath('history.data.0.previous_snapshot.status','approved')
+            ->assertJsonPath('history.data.0.changed_fields.0','body');
+        $this->assertDatabaseHas('audit_logs',[
+            'action'=>'content.revised','resource_type'=>'content_item','resource_id'=>(string)$content->id,
+        ]);
+        $outsider=User::factory()->create(['role'=>'analyst','is_active'=>true]);
+        $outsider->brands()->attach($other->id);
+        $this->actingAs($outsider)->getJson($base.'/history')->assertForbidden();
+        $this->assertStringNotContainsString($prior,
+            $this->getJson($base.'/history')->getContent());
+    }
+
     public function test_cross_brand_and_read_only_users_cannot_edit(): void
     {
         $brand=Brand::query()->create(['name'=>'Tech','slug'=>'tech','brand_config'=>[]]);

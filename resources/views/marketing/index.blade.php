@@ -89,6 +89,12 @@
 <button type="submit">Record source support decision</button>
 </form></div>
 @endif
+<div class="card"><h2>Content revision history</h2>
+<p class="muted">View previous content text, revision reviewer, and approval status. Only same-brand staff can read this history.</p>
+<form data-job-action="contentHistory">
+<label>Content ID <input name="content_id" type="number" min="1" required></label>
+<button type="submit">Load revision history</button>
+</form><pre id="contentHistoryResult" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>
 <div class="card"><h2>Content approval and creative rendering</h2>
 <form data-job-action="contentApprove">
 <label>Draft content ID<input type="number" name="content_id" min="1" required></label>
@@ -188,6 +194,7 @@
     sourceApprove:d=>'/sources/'+d.source_id+'/approve',
     sourceFetch:d=>'/sources/'+d.source_id+'/fetch',
     researchVerify:d=>'/research/'+d.item_id+'/verify',
+    contentHistory:d=>'/content/'+d.content_id+'/history',
     contentEdit:d=>'/content/'+d.content_id,
     claimAttach:d=>'/content/'+d.content_id+'/claims',
     claimAttest:d=>'/content/'+d.content_id+'/claims/attest',
@@ -217,9 +224,10 @@
       if(data.captured_at)data.captured_at=new Date(data.captured_at).toISOString();
     }
     try{
-      const result=await call(path,action==='manualPackage'?undefined:(Object.keys(data).length?data:{}),action==='contentEdit'?'PATCH':'POST');
+      const result=await call(path,['manualPackage','contentHistory'].includes(action)?undefined:(Object.keys(data).length?data:{}),action==='contentEdit'?'PATCH':'POST');
       feedback.textContent=JSON.stringify(result);
       if(action==='manualPackage')document.getElementById('manualPackage').textContent=JSON.stringify(result,null,2);
+      if(action==='contentHistory')document.getElementById('contentHistoryResult').textContent=JSON.stringify(result,null,2);
       load('overview','overview');
     }catch(error){feedback.textContent=error.message;}
   }));

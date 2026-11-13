@@ -30,6 +30,7 @@ Route::middleware(['auth','throttle:90,1'])->prefix('api/v1/brands/{brand}')->gr
     Route::get('/content',[\App\Http\Controllers\MarketingApiController::class,'content']);
     Route::post('/content/generate',[\App\Http\Controllers\MarketingApiController::class,'contentGenerate']);
     Route::post('/content/manual',[\App\Http\Controllers\ManualContentController::class,'store']);
+    Route::get('/content/{contentId}/history',[\App\Http\Controllers\ContentRevisionController::class,'history'])->whereNumber('contentId');
     Route::patch('/content/{contentId}',[\App\Http\Controllers\ContentRevisionController::class,'update'])->whereNumber('contentId');
     Route::post('/content/{contentId}/claims',[\App\Http\Controllers\ClaimAttestationController::class,'attach'])->whereNumber('contentId');
     Route::post('/content/{contentId}/claims/attest',[\App\Http\Controllers\ClaimAttestationController::class,'attest'])->whereNumber('contentId');
