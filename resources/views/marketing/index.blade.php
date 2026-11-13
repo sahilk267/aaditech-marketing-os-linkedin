@@ -64,8 +64,10 @@
 </form></div>
 <div class="card"><h2>Edit a draft — invalidates previous approval</h2>
 <p class="muted">Editing a draft revokes its existing approval, scheduled/manual publishing packages and linked creative assets. An admin must approve the revised copy again. Already sent or uncertain posts are immutable: create a new draft.</p>
-<form data-job-action="contentEdit">
-<label>Content ID <input name="content_id" type="number" min="1" required></label>
+<form data-job-action="contentEdit" id="contentEditForm">
+<label>Content ID <input id="contentEditId" name="content_id" type="number" min="1" required></label>
+<button type="button" id="loadContentForEdit">Load current approved/draft copy</button>
+<input type="hidden" name="expected_fingerprint" required>
 <label>Replacement body <textarea name="body" minlength="40" maxlength="12000" rows="5" required></textarea></label>
 <button type="submit">Save revision and revoke old approval</button>
 </form></div>
@@ -231,6 +233,18 @@
       load('overview','overview');
     }catch(error){feedback.textContent=error.message;}
   }));
+  const editLoader=document.getElementById('loadContentForEdit');
+  if(editLoader)editLoader.addEventListener('click',async()=>{
+    const form=document.getElementById('contentEditForm');
+    const id=String(form.elements.content_id.value||'').trim();
+    if(!/^[1-9][0-9]*$/.test(id)){feedback.textContent='Valid content ID required';return;}
+    try{
+      const result=await call('/content/'+encodeURIComponent(id)+'/history');
+      form.elements.body.value=result.current.body||'';
+      form.elements.expected_fingerprint.value=result.editorial_fingerprint||'';
+      feedback.textContent='Current revision loaded. Edit the body and save. Concurrent changes will be rejected.';
+    }catch(error){feedback.textContent=error.message;}
+  });
   const reconciliationForm=document.getElementById('reconciliationForm');
   if(reconciliationForm)reconciliationForm.addEventListener('submit',async e=>{
     e.preventDefault();const data=Object.fromEntries(new FormData(reconciliationForm).entries());

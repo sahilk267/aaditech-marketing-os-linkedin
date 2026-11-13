@@ -39,6 +39,7 @@ class ContentRevisionController extends Controller
         ]);
         return response()->json([
             'content_id' => $item->id,
+            'editorial_fingerprint' => app(\App\Domain\Publishing\PublicationIntegrity::class)->fingerprint($item, 'editorial'),
             'current' => $item->only([
                 'title', 'topic', 'body', 'hook', 'cta', 'hashtags', 'source_refs',
                 'claim_evidence', 'platform_variants', 'status', 'content_hash',
@@ -55,6 +56,7 @@ class ContentRevisionController extends Controller
             !in_array($actor->role, ['admin', 'editor'], true)) abort(403);
 
         $fields = $request->validate([
+            'expected_fingerprint' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/D'],
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'topic' => ['sometimes', 'required', 'string', 'max:255'],
             'body' => ['sometimes', 'required', 'string', 'min:40', 'max:12000'],
@@ -63,14 +65,20 @@ class ContentRevisionController extends Controller
             'hashtags' => ['sometimes', 'array', 'max:15'],
             'hashtags.*' => ['required', 'string', 'regex:/^[A-Za-z0-9_]{2,40}$/D'],
         ]);
+        $expected = $fields['expected_fingerprint'];
+        unset($fields['expected_fingerprint']);
         if ($fields === []) {
             throw ValidationException::withMessages(['content' => 'Supply at least one editable field']);
         }
 
-        return DB::transaction(function () use ($brand, $contentId, $actor, $fields): JsonResponse {
+        return DB::transaction(function () use ($brand, $contentId, $actor, $fields, $expected): JsonResponse {
             // Shared lock order: content -> publications (including PublishService).
             $item = ContentItem::query()->where('brand_id', $brand->id)
                 ->lockForUpdate()->findOrFail($contentId);
+            $live = app(\App\Domain\Publishing\PublicationIntegrity::class)->fingerprint($item, 'editorial');
+            if (!hash_equals($live, $expected)) {
+                abort(409, 'Content, approval or media changed since you loaded this draft; reload before editing');
+            }
             $publications = PublishingJob::query()
                 ->where('brand_id', $brand->id)->where('content_item_id', $item->id)
                 ->orderBy('id')->lockForUpdate()->get();
