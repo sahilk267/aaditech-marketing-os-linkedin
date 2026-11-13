@@ -105,13 +105,49 @@ class MarketingApiController extends Controller
     { $this->access($r,$brand);return response()->json(ResearchItem::query()->where('brand_id',$brand->id)->latest()->paginate(30)); }
     public function researchVerify(Request $r,Brand $brand,int $itemId): JsonResponse
     {
-        $this->access($r,$brand,true);
-        if ($brand->slug==='overseas-job-placement') $this->admin($r);
-        $item=ResearchItem::query()->where('brand_id',$brand->id)->findOrFail($itemId);
-        $source=BrandSource::query()->where('brand_id',$brand->id)->findOrFail($item->source_id);
-        if (!$source->allowed || ($brand->slug==='overseas-job-placement' && $source->trust_tier!=='A')) abort(422,'Official Tier A evidence required');
-        $item->verification_status='verified'; $item->save();
-        return response()->json(['id'=>$item->id,'verification_status'=>'verified']);
+        $this->access($r,$brand);
+        $this->admin($r);
+        $input=$r->validate([
+            'decision'=>['required','in:verified,rejected'],
+            'reviewed_excerpt'=>['required','string','min:15','max:300'],
+            'verification_note'=>['required','string','min:30','max:1500'],
+            'acknowledged'=>['required','accepted'],
+        ]);
+        $item=DB::transaction(function () use ($brand,$itemId,$r,$input): ResearchItem {
+            $item=ResearchItem::query()->where('brand_id',$brand->id)
+                ->lockForUpdate()->findOrFail($itemId);
+            $source=BrandSource::query()->where('brand_id',$brand->id)
+                ->findOrFail($item->source_id);
+            if (!\App\Domain\Content\ClaimEvidenceGate::excerptPresent($item,$input['reviewed_excerpt'])) {
+                throw ValidationException::withMessages(['reviewed_excerpt'=>'Excerpt not in stored research summary/facts']);
+            }
+            if ($input['decision']==='verified') {
+                if (!$source->allowed || $source->trust_tier==='D' ||
+                    ($brand->slug==='overseas-job-placement' && $source->trust_tier!=='A') ||
+                    $item->freshness_status!=='current' ||
+                    $item->fetched_at?->isFuture()) {
+                    throw ValidationException::withMessages(['research'=>'Only current, permitted, sufficiently trusted research can be verified']);
+                }
+            }
+            $item->verification_status=$input['decision'];
+            $item->save();
+            \App\Models\AuditLog::query()->forceCreate([
+                'user_id'=>$r->user()->id,'actor_type'=>'user',
+                'action'=>'research.verification_decision',
+                'resource_type'=>'research_item','resource_id'=>(string)$item->id,
+                'metadata'=>[
+                    'brand_id'=>$brand->id,'source_id'=>$source->id,
+                    'decision'=>$input['decision'],'reviewed_excerpt'=>trim($input['reviewed_excerpt']),
+                    'verification_note'=>trim($input['verification_note']),
+                    'source_hash'=>$item->content_hash,'trust_tier'=>$source->trust_tier,
+                ],
+            ]);
+            return $item;
+        },3);
+        return response()->json([
+            'id'=>$item->id,'verification_status'=>$item->verification_status,
+            'requires_separate_claim_attestation'=>true,
+        ]);
     }
     public function campaigns(Request $r,Brand $brand): JsonResponse
     { $this->access($r,$brand);return response()->json(Campaign::query()->where('brand_id',$brand->id)->latest()->paginate(30)); }

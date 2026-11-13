@@ -44,7 +44,11 @@
 <button type="submit">Queue source fetch</button></form>
 <form id="researchVerifyForm" data-job-action="researchVerify">
 <label>Research item ID<input type="number" name="item_id" min="1" required></label>
-<button type="submit">Verify evidence after reading original</button></form></div>
+<label>Decision <select name="decision"><option value="rejected">Reject / revoke</option><option value="verified">I verified this source</option></select></label>
+<label>Excerpt checked in stored research <textarea name="reviewed_excerpt" minlength="15" maxlength="300" required></textarea></label>
+<label>Independent reviewer explanation <textarea name="verification_note" minlength="30" maxlength="1500" required></textarea></label>
+<label>Accountable verification <select name="acknowledged"><option value="">Select after checking original source</option><option value="1">I personally checked the original source</option></select></label>
+<button type="submit">Record research review decision (admin only)</button></form></div>
 <div class="card"><h2>Render brand creative without AI or worker</h2>
 <p class="muted">Creates an SVG card for approved content using your brand colors. No external service is called; safe copy/download.</p>
 <form data-job-action="offlineRender">
