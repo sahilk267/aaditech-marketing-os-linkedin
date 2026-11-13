@@ -140,13 +140,14 @@ class MarketingApiController extends Controller
     public function contentApprove(Request $r,Brand $brand,int $contentId,ContentPolicy $policy): JsonResponse
     {
         $this->access($r,$brand,true);
-        $item=ContentItem::query()->where('brand_id',$brand->id)->findOrFail($contentId);
-        if ($brand->slug==='overseas-job-placement'||$item->risk_level!=='low') $this->admin($r);
-        DB::transaction(function () use ($policy,$item,$r): void {
+        $item=DB::transaction(function () use ($policy,$brand,$contentId,$r): ContentItem {
+            $item=ContentItem::query()->where('brand_id',$brand->id)->lockForUpdate()->findOrFail($contentId);
+            if ($brand->slug==='overseas-job-placement'||$item->risk_level!=='low') $this->admin($r);
             $policy->requireApproval($item,$r->user()->id);
             ContentReview::query()->create(['content_item_id'=>$item->id,'review_type'=>'human',
                 'result'=>'approved','findings'=>[],'reviewer_id'=>$r->user()->id,'reviewed_at'=>now()]);
-        });
+            return $item;
+        },3);
         return response()->json(['content_id'=>$item->id,'status'=>$item->status]);
     }
     public function render(Request $r,Brand $brand,int $contentId,JobEngine $engine): JsonResponse

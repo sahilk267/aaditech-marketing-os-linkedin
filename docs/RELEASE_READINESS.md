@@ -120,3 +120,7 @@ These are **CI/staging approximations**, not live Hostinger, desktop uptime, OAu
 ## Brand capability readiness panel (2026-11-12)
 
 Brand overview now reports offline drafts, SVG generation, manual packages, worker heartbeat, fresh zero-priced AI catalog, approved source count and currently approved same-brand publishing platforms without exposing tokens. A brand-scope regression test rejects other-brand access or token leakage. Results describe **configured code paths**, not proof of live remote provider authorization or uptime; CI validation required.
+
+
+## Content revision invalidation and publishing lock order (2026-11-13)
+Added same-brand PATCH content editing with mandatory new review, revision audit hashes, detach of stale creative assets, and explicit blocking of scheduled/manual-ready posts. Sent, succeeded and ambiguous provider outcomes cannot be rewritten. Official publishing and content-edit transitions share the content-before-publication row-lock order; offline render rechecks approved content under lock before persisting media. Laravel tests exercise role isolation, review revocation, scheduled cancellation, stale asset protection and immutable sent posts. Owner approval, full parallel race/chaos testing, real hosting verification, and full revision history remain open. This is not a 100% production-readiness claim.

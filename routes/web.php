@@ -30,6 +30,7 @@ Route::middleware(['auth','throttle:90,1'])->prefix('api/v1/brands/{brand}')->gr
     Route::get('/content',[\App\Http\Controllers\MarketingApiController::class,'content']);
     Route::post('/content/generate',[\App\Http\Controllers\MarketingApiController::class,'contentGenerate']);
     Route::post('/content/manual',[\App\Http\Controllers\ManualContentController::class,'store']);
+    Route::patch('/content/{contentId}',[\App\Http\Controllers\ContentRevisionController::class,'update'])->whereNumber('contentId');
     Route::post('/content/{contentId}/approve',[\App\Http\Controllers\MarketingApiController::class,'contentApprove'])->whereNumber('contentId');
     Route::post('/content/{contentId}/render',[\App\Http\Controllers\MarketingApiController::class,'render'])->whereNumber('contentId');
     Route::post('/content/{contentId}/schedule',[\App\Http\Controllers\MarketingApiController::class,'schedule'])->whereNumber('contentId');

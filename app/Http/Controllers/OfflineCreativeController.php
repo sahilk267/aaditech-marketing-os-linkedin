@@ -52,7 +52,14 @@ class OfflineCreativeController extends Controller
 
         $asset = DB::transaction(function () use ($brand, $content, $svg, $checksum, $path): MediaAsset {
             // One content row is a deterministic lock for repeat render requests.
-            ContentItem::query()->whereKey($content->id)->lockForUpdate()->firstOrFail();
+            $current=ContentItem::query()->where('brand_id',$brand->id)
+                ->whereKey($content->id)->lockForUpdate()->firstOrFail();
+            $policy=app(ContentPolicy::class);
+            $policy->requirePublishable($current);
+            if ($current->body!==$content->body || $current->title!==$content->title ||
+                $current->approved_at?->format('Y-m-d H:i:s')!==$content->approved_at?->format('Y-m-d H:i:s')) {
+                abort(409,'Content changed while rendering; regenerate after approval');
+            }
             if (!Storage::disk('local')->put($path, $svg)) abort(500, 'Unable to store offline SVG');
             return MediaAsset::query()->firstOrCreate([
                 'brand_id' => $brand->id, 'checksum' => $checksum, 'storage_path' => $path,
