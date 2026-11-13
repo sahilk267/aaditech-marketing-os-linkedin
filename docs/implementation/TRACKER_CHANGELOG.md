@@ -98,3 +98,9 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - Admin-only research verify/reject now requires stored excerpt, written rationale, explicit acknowledgment and audit row. ResearchReviewAuditTest.php passed Laravel CI 43404303368.
 - ResearchFreshnessGuard expires old research at maintenance and tick; direct content and generation validation also checks max age if cron is unavailable. Default 7 days for Overseas Job Placement and 90 days for other brands; shorter owner override permitted. Direct freshness CI pending.
 - T056/T060/T061/T066 moved to In Progress, not Verified. E2E-015/016 remain Not Run. Source author/history, semantic verification and live-provider evidence remain open.
+
+
+## 2026-11-13 — Content revision history and concurrent edit protection
+- ContentRevisionController.php now records the previous editorial content snapshot in content_reviews as human_revision, and exposes brand-scoped GET /api/v1/brands/{brand}/content/{contentId}/history. AuditLog remains minimal hashes, not a second copy of content bodies.
+- PATCH /content/{contentId} requires expected_fingerprint=SHA-256 fingerprint obtained by the current GET history response. If body, approval, variants or media changed before edit, request returns 409; dashboard loads current copy before enabling edit submission. Older API clients must update their PATCH payloads.
+- ContentRevisionTest.php adds history and stale-writer negative fixtures. T072 remains In Progress, C-014 remains In Review and E2E-018 Not Run pending controlled parallel writes and real-platform approval/version validation.

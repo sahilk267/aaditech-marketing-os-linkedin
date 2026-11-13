@@ -133,3 +133,7 @@ This is **not automated semantic fact verification**: excerpt containment does n
 
 ## Audited research review and freshness expiry (2026-11-13)
 Research verification now requires admin approval/rejection, source excerpt, rationale and an auditable decision. Unapproved, Tier D, old or foreign-brand research cannot be verified. Periodic maintenance/tick expires sources older than 7 days for Overseas Job Placement and 90 days for other brands; shorter owner-defined periods are permitted. Request-time policy also checks the actual fetch date when scheduled cron is unavailable. This is a conservative engineering safety default, not proof that remote information is accurate or legally sufficient. Full live provider/source acceptance is pending.
+
+
+## Revision history and optimistic edit concurrency (2026-11-13)
+Edits now persist a previous content snapshot and reviewer trail in existing content_reviews; authenticated same-brand staff can inspect paginated revision history. The write endpoint requires an editorial fingerprint from GET /content/{id}/history. A stale version returns 409 before changing current content or revoking approval. The browser edit form loads current copy/fingerprint automatically before submission. Source tests added; complete concurrent MySQL browser race and independent security acceptance still pending. API clients using the older PATCH payload without expected_fingerprint must be upgraded before using this release. No database migration added.
