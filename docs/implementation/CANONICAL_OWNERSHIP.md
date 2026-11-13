@@ -13,7 +13,7 @@ This document maps each of the 19 SRS components to its **single current runtime
 | M07 | app/Domain/AI; worker/amo_worker/ai.py | Verified-free-only routing |
 | M08 | app/Domain/Workflow/JobEngine.php; app/Console/Commands/AadiTick.php | Database leases, attempts and scheduled work |
 | M09 | app/Models/WorkflowEvent.php; app/Console/Commands/AadiOutbox.php | Durable outbox events |
-| M10 | app/Domain/Content/ContentPolicy.php; app/Models/ResearchItem.php | Evidence and human verification controls |
+| M10 | app/Domain/Content/ContentPolicy.php; app/Domain/Content/ClaimEvidenceGate.php; app/Models/ResearchItem.php | Evidence and human verification controls |
 | M11 | app/Models/MediaAsset.php; app/Http/Controllers/OfflineCreativeController.php | Checksum-bound private assets |
 | M12 | app/Domain/Publishing/PublishService.php | Publication fencing and reconciliation |
 | M13 | app/Domain/Publishing/PlatformRegistry.php | Official adapters or manual-only fallback |

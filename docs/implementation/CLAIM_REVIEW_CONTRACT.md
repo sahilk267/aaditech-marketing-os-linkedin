@@ -34,3 +34,7 @@ Known remaining limitations:
 - No real live source exercise, legal correctness certification, or E2E-016 acceptance is claimed.
 
 **Status:** implementation in progress; CI tested, source governance and live review not fully verified. Do not mark G05/G10/G11 accepted from this increment alone.
+
+
+## Research-review prerequisite and freshness bounds
+Research item review endpoint: POST /api/v1/brands/{brand}/research/{id}/verify with decision=verified|rejected, a reviewed_excerpt present in short stored research text, verification_note (30-1500 characters), and acknowledged=true. Admin-only, audited, and same-brand. A rejection revokes verification and blocks downstream claims on their next policy check. Maximum age: 7 days for Overseas Job Placement and 90 days otherwise, and any brand_config.research_max_age_days may only shorten the period. Even without cron, policy refuses research older than this threshold. These are engineering defaults subject to owner validation; semantic truth is not inferred automatically.

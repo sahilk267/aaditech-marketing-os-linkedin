@@ -92,3 +92,9 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - T062/T063/T064/T067 moved to In Progress. Added ClaimEvidenceGate and ClaimAttestationController with draft citations, admin verdict, excerpt presence check, source/body hash binding and fail-closed send-time validation.
 - ClaimAttestationTest.php negative/positive cases passed in GitHub Actions application CI run 43403634588. C-006 is In Review, not Closed. E2E-016 remains Not Run with a PHP test evidence link; semantic entailment without accountable human judgment is not done.
 - Added CLAIM_REVIEW_CONTRACT.md with routes, limitations and strict reapproval behavior. No hosting credentials, paid AI model or unsupported social adapter introduced.
+
+
+## 2026-11-13 - Audited research verification and freshness lifecycle
+- Admin-only research verify/reject now requires stored excerpt, written rationale, explicit acknowledgment and audit row. ResearchReviewAuditTest.php passed Laravel CI 43404303368.
+- ResearchFreshnessGuard expires old research at maintenance and tick; direct content and generation validation also checks max age if cron is unavailable. Default 7 days for Overseas Job Placement and 90 days for other brands; shorter owner override permitted. Direct freshness CI pending.
+- T056/T060/T061/T066 moved to In Progress, not Verified. E2E-015/016 remain Not Run. Source author/history, semantic verification and live-provider evidence remain open.
