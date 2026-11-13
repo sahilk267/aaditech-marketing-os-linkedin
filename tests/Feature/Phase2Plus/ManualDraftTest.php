@@ -50,6 +50,10 @@ class ManualDraftTest extends TestCase
         $analyst->brands()->attach($brand->id);
         $this->actingAs($analyst)->postJson("/api/v1/brands/{$brand->id}/content/manual", $this->input())
             ->assertForbidden();
+        $operator = User::factory()->create(['role' => 'operator', 'is_active' => true]);
+        $operator->brands()->attach($brand->id);
+        $this->actingAs($operator)->postJson("/api/v1/brands/{$brand->id}/content/manual", $this->input())
+            ->assertForbidden();
         $this->assertDatabaseCount('content_items', 0);
     }
 

@@ -37,6 +37,17 @@ class BrandAccessTest extends TestCase
         $this->put('/brands/'.$mine->id, $this->data($mine))->assertForbidden();
     }
 
+    public function test_analyst_and_operator_cannot_mutate_brand_even_with_membership(): void
+    {
+        $brand=$this->brand('shared-brand');
+        foreach (['analyst','operator'] as $role) {
+            $member=User::factory()->create(['role'=>$role,'is_active'=>true]);
+            $member->brands()->attach($brand);
+            $this->actingAs($member)->get('/brands/'.$brand->id)->assertOk();
+            $this->put('/brands/'.$brand->id,$this->data($brand))->assertForbidden();
+        }
+    }
+
     public function test_admin_can_edit_without_dropping_high_risk_policy_or_audit(): void
     {
         $brand=$this->brand('overseas');

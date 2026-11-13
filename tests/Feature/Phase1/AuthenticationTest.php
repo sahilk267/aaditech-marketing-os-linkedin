@@ -23,6 +23,14 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_logout_clears_identity_and_blocks_private_dashboard(): void
+    {
+        $user = User::factory()->create(['role'=>'admin','is_active'=>true]);
+        $this->actingAs($user)->post('/logout')->assertRedirect('/login');
+        $this->assertGuest();
+        $this->get('/dashboard')->assertRedirect('/login');
+    }
+
     public function test_login_regenerates_session_and_dashboard_loads(): void
     {
         $user = User::factory()->create(['role'=>'admin','is_active'=>true,'password'=>'Test-Secure-Password-123']);
