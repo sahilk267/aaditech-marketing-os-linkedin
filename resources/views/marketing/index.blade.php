@@ -58,6 +58,13 @@
 <label>Platform <select name="platform"><option>linkedin</option><option>facebook</option><option>instagram</option><option>youtube</option><option>pinterest</option><option>threads</option><option>tiktok</option></select></label>
 <button type="submit">Prepare manual publishing package now</button>
 </form></div>
+<div class="card"><h2>Edit a draft — invalidates previous approval</h2>
+<p class="muted">Editing a draft revokes its existing approval, scheduled/manual publishing packages and linked creative assets. An admin must approve the revised copy again. Already sent or uncertain posts are immutable: create a new draft.</p>
+<form data-job-action="contentEdit">
+<label>Content ID <input name="content_id" type="number" min="1" required></label>
+<label>Replacement body <textarea name="body" minlength="40" maxlength="12000" rows="5" required></textarea></label>
+<button type="submit">Save revision and revoke old approval</button>
+</form></div>
 <div class="card"><h2>Content approval and creative rendering</h2>
 <form data-job-action="contentApprove">
 <label>Draft content ID<input type="number" name="content_id" min="1" required></label>
@@ -133,9 +140,9 @@
   const prefix = @json('/api/v1/brands/'.$brand->id);
   const token = document.querySelector('meta[name="csrf-token"]').content;
   const feedback = document.getElementById('feedback');
-  async function call(path, data) {
+  async function call(path, data, method='POST') {
     const opts = { credentials: 'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':token}};
-    if (data) { opts.method='POST'; opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(data); }
+    if (data) { opts.method=method; opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(data); }
     const res=await fetch(prefix+path,opts);
     const json=await res.json().catch(()=>({message:'Unexpected response'}));
     if (!res.ok) throw new Error(json.message||'Request failed '+res.status);
@@ -157,6 +164,7 @@
     sourceApprove:d=>'/sources/'+d.source_id+'/approve',
     sourceFetch:d=>'/sources/'+d.source_id+'/fetch',
     researchVerify:d=>'/research/'+d.item_id+'/verify',
+    contentEdit:d=>'/content/'+d.content_id,
     contentApprove:d=>'/content/'+d.content_id+'/approve',
     contentRender:d=>'/content/'+d.content_id+'/render',
     contentSchedule:d=>'/content/'+d.content_id+'/schedule',
@@ -182,7 +190,7 @@
       if(data.captured_at)data.captured_at=new Date(data.captured_at).toISOString();
     }
     try{
-      const result=await call(path,action==='manualPackage'?undefined:(Object.keys(data).length?data:{}));
+      const result=await call(path,action==='manualPackage'?undefined:(Object.keys(data).length?data:{}),action==='contentEdit'?'PATCH':'POST');
       feedback.textContent=JSON.stringify(result);
       if(action==='manualPackage')document.getElementById('manualPackage').textContent=JSON.stringify(result,null,2);
       load('overview','overview');

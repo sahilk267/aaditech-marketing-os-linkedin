@@ -17,11 +17,16 @@ class PublishService
     {
         // Mark sending before the external side effect. Uncertain outcomes require reconciliation.
         $state=DB::transaction(function() use ($id): array {
+            // Always lock content BEFORE publication so revision and send paths
+            // serialize on the same row. This prevents stale approval races.
+            $peek=PublishingJob::query()->findOrFail($id);
+            $content=ContentItem::query()->whereKey($peek->content_item_id)
+                ->lockForUpdate()->firstOrFail();
             $job=PublishingJob::query()->lockForUpdate()->findOrFail($id);
+            if ((int)$job->content_item_id!==(int)$content->id) abort(409,'Publication content changed');
             if ($job->status==='succeeded') return ['done'=>true,'job'=>$job];
             if ($job->status==='manual_ready') return ['manual_ready'=>true,'job'=>$job];
             if ($job->status!=='scheduled'||$job->scheduled_at->isFuture()) abort(409,'Publication not due or already attempted');
-            $content=ContentItem::query()->findOrFail($job->content_item_id);
             if ((int)$content->brand_id !==(int)$job->brand_id) abort(409,'Cross-brand publishing denied');
             $this->policy->requirePublishable($content);
             $account=$job->social_account_id ? $job->socialAccount : null;
@@ -44,7 +49,7 @@ class PublishService
             }
             $job->status='sending'; $job->attempt_count++; $job->save();
             return ['send'=>true,'job'=>$job];
-        });
+        },3);
         if (isset($state['done'])) return ['status'=>'succeeded','platform_post_id'=>$state['job']->platform_post_id];
         if (isset($state['manual_ready'])) return ['status'=>'manual_ready'];
         if (isset($state['blocked_review'])) return ['status'=>'blocked_review','reason'=>'CONTENT_APPROVAL_SNAPSHOT_STALE'];
