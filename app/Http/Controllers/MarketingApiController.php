@@ -124,7 +124,7 @@ class MarketingApiController extends Controller
             if ($input['decision']==='verified') {
                 if (!$source->allowed || $source->trust_tier==='D' ||
                     ($brand->slug==='overseas-job-placement' && $source->trust_tier!=='A') ||
-                    $item->freshness_status!=='current' ||
+                    !app(\App\Domain\Research\ResearchFreshnessGuard::class)->isCurrent($brand,$item) ||
                     $item->fetched_at?->isFuture()) {
                     throw ValidationException::withMessages(['research'=>'Only current, permitted, sufficiently trusted research can be verified']);
                 }
@@ -168,7 +168,10 @@ class MarketingApiController extends Controller
         $in=$r->validate(['topic'=>['required','string','max:255'],'platform'=>['required','in:linkedin,facebook,instagram,youtube,pinterest,threads,tiktok'],
             'language'=>['required','string','max:12'],'content_type'=>['required','string','max:48'],
             'source_ids'=>['required','array','max:20'],'source_ids.*'=>['integer','distinct','min:1']]);
-        $verified=ResearchItem::query()->where('brand_id',$brand->id)->where('verification_status','verified')->where('freshness_status','current')->whereIn('id',$in['source_ids'])->count();
+        $cutoff=now()->subDays(app(\App\Domain\Research\ResearchFreshnessGuard::class)->maxAgeDays($brand));
+        $verified=ResearchItem::query()->where('brand_id',$brand->id)
+            ->where('verification_status','verified')->where('freshness_status','current')
+            ->where('fetched_at','>=',$cutoff)->whereIn('id',$in['source_ids'])->count();
         if ($verified!==count($in['source_ids'])) throw ValidationException::withMessages(['source_ids'=>'Only verified same-brand research may be supplied']);
         $job=$engine->enqueue('content.generate', $in+['brand_slug'=>$brand->slug],$brand->id);
         return response()->json(['job_id'=>$job->id],202);

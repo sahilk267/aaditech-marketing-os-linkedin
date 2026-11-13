@@ -58,6 +58,17 @@ class ResearchFreshnessGuardTest extends TestCase
         $this->assertSame('stale',$expired->fresh()->freshness_status);
     }
 
+    public function test_stale_item_fails_immediate_freshness_check_before_cron_sweep(): void
+    {
+        $item=$this->record('overseas-job-placement',8);
+        $brand=$item->brand;
+        $this->assertSame('current',$item->freshness_status);
+        $this->assertFalse(app(ResearchFreshnessGuard::class)->isCurrent($brand,$item));
+        $this->assertSame('current',$item->fresh()->freshness_status); // Pure gate does not mutate.
+        $this->artisan('aadi:maintenance')->assertExitCode(0);
+        $this->assertSame('stale',$item->fresh()->freshness_status);
+    }
+
     public function test_shorter_owner_freshness_window_is_respected(): void
     {
         $item=$this->record('custom',10,3);

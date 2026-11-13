@@ -47,7 +47,7 @@ class ClaimAttestationController extends Controller
             foreach ($research as $r) {
                 $source = BrandSource::query()->where('brand_id', $brand->id)->find($r->source_id);
                 if (!$source || !$source->allowed || $r->verification_status !== 'verified' ||
-                    $r->freshness_status !== 'current' ||
+                    !app(\App\Domain\Research\ResearchFreshnessGuard::class)->isCurrent($brand, $r) ||
                     ($brand->slug === 'overseas-job-placement' && $source->trust_tier !== 'A')) {
                     throw ValidationException::withMessages(['research_item_ids' => 'Only approved, current, same-brand evidence is eligible']);
                 }
@@ -108,7 +108,7 @@ class ClaimAttestationController extends Controller
             $source = BrandSource::query()->where('brand_id', $brand->id)
                 ->findOrFail($research->source_id);
             if (!$source->allowed || $research->verification_status !== 'verified' ||
-                $research->freshness_status !== 'current' ||
+                !app(\App\Domain\Research\ResearchFreshnessGuard::class)->isCurrent($brand, $research) ||
                 ($brand->slug === 'overseas-job-placement' && $source->trust_tier !== 'A')) {
                 throw ValidationException::withMessages(['source' => 'Official/current/approved evidence required']);
             }

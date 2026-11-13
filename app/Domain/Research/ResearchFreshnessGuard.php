@@ -13,15 +13,28 @@ use Illuminate\Support\Facades\DB;
  */
 class ResearchFreshnessGuard
 {
+    public function maxAgeDays(Brand $brand): int
+    {
+        $ceiling = $brand->slug === 'overseas-job-placement' ? 7 : 90;
+        $configured = ($brand->brand_config ?? [])['research_max_age_days'] ?? null;
+        return is_int($configured) && $configured >= 1
+            ? min($configured, $ceiling) : $ceiling;
+    }
+
+    public function isCurrent(Brand $brand, ResearchItem $item): bool
+    {
+        return (int)$item->brand_id === (int)$brand->id &&
+            $item->freshness_status === 'current' &&
+            $item->fetched_at !== null &&
+            $item->fetched_at->gte(now()->subDays($this->maxAgeDays($brand)));
+    }
+
     public function expire(int $batchPerBrand = 150): int
     {
         $updated = 0;
         $batchPerBrand = min(500, max(1, $batchPerBrand));
         foreach (Brand::query()->where('is_active', true)->get() as $brand) {
-            $maximum = $brand->slug === 'overseas-job-placement' ? 7 : 90;
-            $configured = ($brand->brand_config ?? [])['research_max_age_days'] ?? null;
-            $days = is_int($configured) && $configured >= 1
-                ? min($configured, $maximum) : $maximum;
+            $days = $this->maxAgeDays($brand);
             $deadline = now()->subDays($days);
             $ids = ResearchItem::query()->where('brand_id', $brand->id)
                 ->where('freshness_status', 'current')

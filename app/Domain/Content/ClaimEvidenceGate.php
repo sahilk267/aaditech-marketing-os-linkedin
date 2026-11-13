@@ -69,7 +69,7 @@ class ClaimEvidenceGate
                     ->find($research->source_id) : null;
                 if (!$research || !$source || !$source->allowed ||
                     $research->verification_status !== 'verified' ||
-                    $research->freshness_status !== 'current' ||
+                    !app(\App\Domain\Research\ResearchFreshnessGuard::class)->isCurrent($brand, $research) ||
                     ($brand->slug === 'overseas-job-placement' && $source->trust_tier !== 'A')) {
                     $errors[] = 'CLAIM_UNVERIFIED';
                     continue;
