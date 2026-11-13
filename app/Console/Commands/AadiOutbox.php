@@ -19,7 +19,7 @@ class AadiOutbox extends Command
         'workflow.failed', 'workflow.backlog_high', 'publication.succeeded',
         'publication.needs_reconciliation', 'publication.manual_ready', 'oauth.expiring', 'oauth.revoked',
         'provider.quota_exhausted', 'ai.fallback', 'ai.unavailable',
-        'content.high_risk_held', 'report.daily_ready',
+        'content.high_risk_held', 'research.stale', 'report.daily_ready',
     ];
 
     public function handle(): int

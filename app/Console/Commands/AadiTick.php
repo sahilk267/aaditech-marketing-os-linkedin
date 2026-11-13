@@ -13,8 +13,9 @@ class AadiTick extends Command
 {
     protected $signature='aadi:tick';
     protected $description='Schedule allowed source refresh and evidence-backed drafts for approved brands';
-    public function handle(JobEngine $jobs):int
+    public function handle(JobEngine $jobs, \App\Domain\Research\ResearchFreshnessGuard $freshness):int
     {
+        $freshness->expire(); // Never schedule drafts from aged evidence.
         // Idempotency keys in database are authoritative; cache is only an optimization.
         $today=now('UTC')->format('Y-m-d');
         $enqueued=0;

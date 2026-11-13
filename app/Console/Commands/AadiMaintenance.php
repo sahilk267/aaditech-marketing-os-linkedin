@@ -13,8 +13,9 @@ class AadiMaintenance extends Command
 {
     protected $signature='aadi:maintenance';
     protected $description='Mark disconnected workers, clean expired nonces and inspect retry backlog';
-    public function handle(): int
+    public function handle(\App\Domain\Research\ResearchFreshnessGuard $freshness): int
     {
+        $staleResearch=$freshness->expire();
         $offline=WorkerNode::query()->where('status','online')->where('last_heartbeat_at','<',now()->subMinutes(4))->get();
         foreach ($offline as $node) {
             DB::transaction(function() use ($node):void {
@@ -60,7 +61,7 @@ class AadiMaintenance extends Command
         // An expired lease is reclaimed transactionally by the next compatible worker.
         $stalled=WorkflowJob::query()->whereIn('status',['leased','running'])
             ->where('lease_expires_at','<',now())->count();
-        $this->info('Offline workers: '.$offline->count().'; expired jobs available for reclaim: '.$stalled);
+        $this->info('Offline workers: '.$offline->count().'; newly stale research: '.$staleResearch.'; expired jobs available for reclaim: '.$stalled);
         return self::SUCCESS;
     }
 
