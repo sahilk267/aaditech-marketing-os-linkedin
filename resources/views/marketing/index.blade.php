@@ -65,6 +65,26 @@
 <label>Replacement body <textarea name="body" minlength="40" maxlength="12000" rows="5" required></textarea></label>
 <button type="submit">Save revision and revoke old approval</button>
 </form></div>
+@if(auth()->user()->isAdmin())
+<div class="card"><h2>Factual claim evidence review</h2>
+<p class="muted">A claim requires a current approved research item, a matching source excerpt, and an accountable admin support decision. Verbatim excerpts alone do not prove semantic truth; read the original source and reject mismatches.</p>
+<form data-job-action="claimAttach" id="claimAttachForm">
+<label>Draft content ID <input type="number" min="1" name="content_id" required></label>
+<label>Exact factual claim in post body <textarea name="claim" minlength="10" maxlength="1000" required></textarea></label>
+<label>Approved research IDs, comma-separated <input name="research_item_ids" required placeholder="1, 2"></label>
+<button type="submit">Attach claim citations</button>
+</form>
+<form data-job-action="claimAttest">
+<label>Draft content ID <input type="number" min="1" name="content_id" required></label>
+<label>Exact claim text <textarea name="claim" minlength="10" maxlength="1000" required></textarea></label>
+<label>Linked research ID <input type="number" min="1" name="research_item_id" required></label>
+<label>Exact excerpt in verified source <textarea name="source_excerpt" minlength="15" maxlength="300" required></textarea></label>
+<label>Why source does or does not support the specific claim <textarea name="rationale" minlength="30" maxlength="2000" required></textarea></label>
+<label>Decision <select name="decision"><option value="rejected">Reject claim</option><option value="supported">I verified support manually</option></select></label>
+<label>Accountable human review <select name="acknowledged"><option value="">Select after checking original</option><option value="1">I checked the original source and its meaning</option></select></label>
+<button type="submit">Record source support decision</button>
+</form></div>
+@endif
 <div class="card"><h2>Content approval and creative rendering</h2>
 <form data-job-action="contentApprove">
 <label>Draft content ID<input type="number" name="content_id" min="1" required></label>
@@ -165,6 +185,8 @@
     sourceFetch:d=>'/sources/'+d.source_id+'/fetch',
     researchVerify:d=>'/research/'+d.item_id+'/verify',
     contentEdit:d=>'/content/'+d.content_id,
+    claimAttach:d=>'/content/'+d.content_id+'/claims',
+    claimAttest:d=>'/content/'+d.content_id+'/claims/attest',
     contentApprove:d=>'/content/'+d.content_id+'/approve',
     contentRender:d=>'/content/'+d.content_id+'/render',
     contentSchedule:d=>'/content/'+d.content_id+'/schedule',
@@ -178,6 +200,7 @@
     e.preventDefault();const action=form.dataset.jobAction;
     const data=Object.fromEntries(new FormData(form).entries());
     const path=jobRoutes[action](data);
+    if(action==='claimAttach')data.research_item_ids=String(data.research_item_ids||'').split(',').map(s=>Number(s.trim())).filter(n=>Number.isInteger(n)&&n>0);
     // Server receives only fields in the explicit route contract.
     delete data.source_id;delete data.item_id;delete data.content_id;
     delete data.publication_id;delete data.account_id;

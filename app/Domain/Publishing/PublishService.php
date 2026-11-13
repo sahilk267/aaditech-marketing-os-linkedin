@@ -28,7 +28,17 @@ class PublishService
             if ($job->status==='manual_ready') return ['manual_ready'=>true,'job'=>$job];
             if ($job->status!=='scheduled'||$job->scheduled_at->isFuture()) abort(409,'Publication not due or already attempted');
             if ((int)$content->brand_id !==(int)$job->brand_id) abort(409,'Cross-brand publishing denied');
-            $this->policy->requirePublishable($content);
+            try {
+                $this->policy->requirePublishable($content);
+            } catch (ValidationException $e) {
+                // A previously approved research source may become stale,
+                // revoked or materially changed. Never auto-retry invalid copy.
+                $job->status = 'blocked_review';
+                $job->last_error = 'CONTENT_EVIDENCE_REVALIDATION_FAILED';
+                $job->save();
+                $this->event('publication.blocked_review', $job);
+                return ['blocked_review' => true, 'job' => $job];
+            }
             $account=$job->social_account_id ? $job->socialAccount : null;
             if (!$account|| (int)$account->brand_id !== (int)$job->brand_id||!in_array($job->platform,['linkedin','facebook'],true)||$account->platform!==$job->platform|| !$account->api_access_approved||$account->connection_status!=='connected') {
                 $job->status='manual_ready'; $job->save();

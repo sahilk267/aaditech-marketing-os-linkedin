@@ -17,16 +17,7 @@ class ContentPolicy
         $platforms=$content['platform_variants']??[];
         if ($body==='' || mb_strlen($body)>12000) $errors[]='BODY_INVALID';
         if (!is_array($platforms)) $errors[]='VARIANTS_INVALID';
-        $evidence=$content['claim_evidence']??[];
-        if (!is_array($evidence) || count($evidence)>40) $errors[]='EVIDENCE_INVALID';
-        foreach (is_array($evidence)?$evidence:[] as $claim) {
-            if (!is_array($claim)||!is_string($claim['claim']??null)||!is_array($claim['research_item_ids']??null)||count($claim['research_item_ids'])===0) { $errors[]='CLAIM_UNSUPPORTED';continue; }
-            $ids=array_values(array_unique(array_filter($claim['research_item_ids'],fn($v)=>is_int($v)&&$v>0)));
-            if (count($ids)!==count(array_unique($claim['research_item_ids']))) { $errors[]='CLAIM_EVIDENCE_INVALID';continue; }
-            $count=ResearchItem::query()->where('brand_id',$brand->id)->whereIn('id',$ids)
-                ->where('verification_status','verified')->where('freshness_status','current')->count();
-            if ($count!==count($ids)) $errors[]='CLAIM_UNVERIFIED';
-        }
+        $errors=array_merge($errors,app(ClaimEvidenceGate::class)->inspect($brand,$content));
         $config=$brand->brand_config??[];
         foreach (($config['prohibited_claims']??[]) as $phrase) {
             if (is_string($phrase)&&strlen($phrase)>2&&mb_stripos($body,$phrase)!==false) $errors[]='BRAND_PROHIBITED_CLAIM';
