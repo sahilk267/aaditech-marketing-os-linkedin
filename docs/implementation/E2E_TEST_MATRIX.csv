@@ -1,8 +1,8 @@
 test_id,gate,scenario,expected_result,test_type,status,execution_environment,evidence,owner
 E2E-001,G01,Fresh checkout boots and routes unique,artisan route:list and php artisan test discover all app paths,integration,Not Run,Staging/Controlled test,,Engineering
-E2E-002,G02,Brand cross-tenant read/write/asset denied,403/404; zero leakage across all four brands,security,Not Run,Staging/Controlled test,,Engineering
-E2E-003,G02,Role action matrix,Admin/editor/analyst/operator mutation cases match policy,security,Not Run,Staging/Controlled test,,Engineering
-E2E-004,G02,"Worker revoked, replayed or stale token",All rejected; no secret leakage,security,Not Run,Staging/Controlled test,,Engineering
+E2E-002,G02,Brand cross-tenant read/write/asset denied,403/404; zero leakage across all four brands,security,Not Run,Staging/Controlled test,BrandAccessTest.php and BrandReadinessTest.php cover selected brand isolation cases; complete API sweep pending,Engineering
+E2E-003,G02,Role action matrix,Admin/editor/analyst/operator mutation cases match policy,security,Not Run,Staging/Controlled test,BrandAccessTest.php and ManualDraftTest.php cover roles for brand and draft operations; full matrix pending,Engineering
+E2E-004,G02,"Worker revoked, replayed or stale token",All rejected; no secret leakage,security,Not Run,Staging/Controlled test,WorkerAccessTest.php covers revoked/replayed/expired credentials; full real TLS/recovery acceptance pending,Engineering
 E2E-005,G02,Fresh MySQL migrate rollback seed rerun,Schema stable FK/index and no brand duplication,integration,Not Run,Staging/Controlled test,,Engineering
 E2E-006,G03,Two workers claim one job,Only one active lease and no duplicate action,chaos,Not Run,Staging/Controlled test,,Engineering
 E2E-007,G03,"Worker crash after claim, before completion","Lease expires, reclaimed and resumes safely",chaos,Not Run,Staging/Controlled test,,Engineering

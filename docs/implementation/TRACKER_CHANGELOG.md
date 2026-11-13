@@ -84,3 +84,5 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - G00 task IDs T002-T008 reviewed against live canonical ownership, route/migration checks, source and traceability documents. Stale Not Started statuses changed only to In Progress or In Review; T001 remains Not Started pending accountable owner signoff.
 - T072 started with safe same-brand PATCH revisions, auditing, asset invalidation, and revoked scheduled/manual posts. Independent concurrency/real platform tests pending. E2E-018 remains Not Run and C-014 remains In Review.
 - No tasks have been declared Verified from source alone. Status changes are implementation tracking, not full acceptance.
+
+- **2026-11-13 · identity and brand role reconciliation:** T020/T021/T022/T026/T027 move from stale Not Started to In Progress based on existing canonical middleware/controllers and expanded AuthenticationTest, BrandAccessTest and ManualDraftTest negative tests. E2E-002/003/004 retain Not Run until full scenario execution and production policy coverage. No task marked Verified.
