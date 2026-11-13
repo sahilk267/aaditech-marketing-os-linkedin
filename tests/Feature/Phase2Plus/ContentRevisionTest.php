@@ -18,6 +18,11 @@ class ContentRevisionTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function fingerprint(ContentItem $item): string
+    {
+        return app(PublicationIntegrity::class)->fingerprint($item->fresh(), 'editorial');
+    }
+
     private function approvedPost(Brand $brand): ContentItem
     {
         $approver = User::factory()->create(['role'=>'admin','is_active'=>true]);
@@ -44,7 +49,7 @@ class ContentRevisionTest extends TestCase
         $this->assertDatabaseCount('media_assets',1);
         $this->assertDatabaseHas('publishing_jobs',['status'=>'manual_ready']);
 
-        $this->patchJson($base,['body'=>'Updated infrastructure checklist. Validate the approved change window and record an owner review.'])
+        $this->patchJson($base,['body'=>'Updated infrastructure checklist. Validate the approved change window and record an owner review.', 'expected_fingerprint'=>$this->fingerprint($content)])
             ->assertOk()->assertJsonPath('status','needs_review')
             ->assertJsonPath('requires_admin_review',true)
             ->assertJsonPath('revoked_publications',1)
@@ -79,7 +84,7 @@ class ContentRevisionTest extends TestCase
             'request_metadata'=>['content_fingerprint'=>app(PublicationIntegrity::class)->fingerprint($content,'linkedin')],
         ]);
         $this->actingAs($admin)->patchJson('/api/v1/brands/'.$brand->id.'/content/'.$content->id,
-            ['title'=>'Revised infrastructure guidance'])->assertOk();
+            ['title'=>'Revised infrastructure guidance','expected_fingerprint'=>$this->fingerprint($content)])->assertOk();
         $post->refresh();
         $this->assertSame('blocked_review',$post->status);
         Http::fake();
@@ -100,7 +105,7 @@ class ContentRevisionTest extends TestCase
                 'idempotency_key'=>'status-'.$status,
             ]);
             $this->actingAs($admin)->patchJson('/api/v1/brands/'.$brand->id.'/content/'.$content->id,
-                ['body'=>'Updated version of a long infrastructure advisory and original recommendations.'])
+                ['body'=>'Updated version of a long infrastructure advisory and original recommendations.','expected_fingerprint'=>$this->fingerprint($content)])
                 ->assertStatus(409);
             $this->assertSame('approved',$content->fresh()->status);
             $job->delete();
@@ -116,9 +121,9 @@ class ContentRevisionTest extends TestCase
         $admin=User::factory()->create(['role'=>'admin','is_active'=>true]);
         $base='/api/v1/brands/'.$brand->id.'/content/'.$content->id;
         $this->actingAs($admin)->postJson($base.'/render-offline')->assertCreated();
-        $this->patchJson($base,['body'=>'A different infrastructure checklist that needs a fresh explicit approval.'])->assertOk();
+        $this->patchJson($base,['body'=>'A different infrastructure checklist that needs a fresh explicit approval.','expected_fingerprint'=>$this->fingerprint($content)])->assertOk();
         $this->postJson($base.'/approve',[])->assertOk();
-        $this->patchJson($base,['body'=>$originalBody])->assertOk();
+        $this->patchJson($base,['body'=>$originalBody,'expected_fingerprint'=>$this->fingerprint($content)])->assertOk();
         $this->postJson($base.'/approve',[])->assertOk();
         $result=$this->postJson($base.'/render-offline')->assertOk()->assertJsonPath('status','ready');
         $this->assertDatabaseCount('media_assets',1);
@@ -137,10 +142,11 @@ class ContentRevisionTest extends TestCase
         $admin=User::factory()->create(['role'=>'admin','is_active'=>true]);
         $base='/api/v1/brands/'.$brand->id.'/content/'.$content->id;
         $replacement='Updated guidance about reviewing infrastructure before a scheduled change and validating controls.';
-        $this->actingAs($admin)->patchJson($base,['body'=>$replacement])->assertOk();
+        $this->actingAs($admin)->patchJson($base,['body'=>$replacement,'expected_fingerprint'=>$this->fingerprint($content)])->assertOk();
         $this->getJson($base.'/history')->assertOk()
             ->assertJsonPath('current.body',$replacement)
             ->assertJsonPath('history.total',1)
+            ->assertJsonPath('editorial_fingerprint',$this->fingerprint($content))
             ->assertJsonPath('history.data.0.previous_snapshot.body',$prior)
             ->assertJsonPath('history.data.0.previous_snapshot.status','approved')
             ->assertJsonPath('history.data.0.changed_fields.0','body');
@@ -154,16 +160,39 @@ class ContentRevisionTest extends TestCase
             $this->getJson($base.'/history')->getContent());
     }
 
+    public function test_stale_revision_fingerprint_rejects_second_edit_without_overwrite(): void
+    {
+        $brand=Brand::query()->create(['name'=>'Tech','slug'=>'tech','brand_config'=>[]]);
+        $content=$this->approvedPost($brand);
+        $admin=User::factory()->create(['role'=>'admin','is_active'=>true]);
+        $base='/api/v1/brands/'.$brand->id.'/content/'.$content->id;
+        $fingerprint=$this->fingerprint($content);
+        $this->actingAs($admin)->patchJson($base,[
+            'body'=>'First updated infrastructure guidance, with clear review context and technical approvals.',
+            'expected_fingerprint'=>$fingerprint,
+        ])->assertOk();
+        $this->patchJson($base,[
+            'body'=>'Second stale infrastructure edit that must not overwrite the first committed revision.',
+            'expected_fingerprint'=>$fingerprint,
+        ])->assertStatus(409);
+        $this->assertSame(
+            'First updated infrastructure guidance, with clear review context and technical approvals.',
+            $content->fresh()->body
+        );
+        $this->assertDatabaseCount('audit_logs',1);
+        $this->getJson($base.'/history')->assertJsonPath('history.total',1);
+    }
+
     public function test_cross_brand_and_read_only_users_cannot_edit(): void
     {
         $brand=Brand::query()->create(['name'=>'Tech','slug'=>'tech','brand_config'=>[]]);
         $content=$this->approvedPost($brand);
         $url='/api/v1/brands/'.$brand->id.'/content/'.$content->id;
         $editor=User::factory()->create(['role'=>'editor','is_active'=>true]);
-        $this->actingAs($editor)->patchJson($url,['title'=>'Changed'])->assertForbidden();
+        $this->actingAs($editor)->patchJson($url,['title'=>'Changed','expected_fingerprint'=>$this->fingerprint($content)])->assertForbidden();
         $analyst=User::factory()->create(['role'=>'analyst','is_active'=>true]);
         $analyst->brands()->attach($brand->id);
-        $this->actingAs($analyst)->patchJson($url,['title'=>'Changed'])->assertForbidden();
+        $this->actingAs($analyst)->patchJson($url,['title'=>'Changed','expected_fingerprint'=>$this->fingerprint($content)])->assertForbidden();
         $this->assertSame('approved',$content->fresh()->status);
     }
 }
