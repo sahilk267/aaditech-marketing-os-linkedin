@@ -34,7 +34,7 @@ for p in root.glob('app/**/*.php'):
 ownership=(root/'docs/implementation/CANONICAL_OWNERSHIP.md').read_text(encoding='utf-8')
 owners={}
 for line in ownership.splitlines():
-    match=re.match(r'^\|\s*(M\d{2})\s*\|[^|]*\|\s*([^|]+)\|',line)
+    match=re.match(r'^\|\s*(M\d{2})\s*\|\s*([^|]+)\|',line)
     if not match:continue
     mid,locations=match.groups()
     assert mid not in owners, f'Duplicate canonical ownership row: {mid}'
