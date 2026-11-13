@@ -30,6 +30,27 @@ for p in root.glob('app/**/*.php'):
     if 'env(' in p.read_text():
         # Services should consume config() values once config caching is enabled.
         assert p.name not in {'OfficialLinkedInAdapter.php'},f'Illegal env access in {p}'
+# Live ownership and route duplicate safeguards. Historical phase overlays are excluded.
+ownership=(root/'docs/implementation/CANONICAL_OWNERSHIP.md').read_text(encoding='utf-8')
+owners={}
+for line in ownership.splitlines():
+    match=re.match(r'^\|\s*(M\d{2})\s*\|[^|]*\|\s*([^|]+)\|',line)
+    if not match:continue
+    mid,locations=match.groups()
+    assert mid not in owners, f'Duplicate canonical ownership row: {mid}'
+    anchors=[x.strip() for x in locations.split(';') if x.strip()]
+    assert anchors, f'Empty runtime owner for {mid}'
+    for anchor in anchors:
+        assert (root/anchor).exists(),f'Invalid canonical runtime owner {mid}: {anchor}'
+        assert not anchor.startswith(('phase0/','phase1/','phase2plus/')),f'Archived overlay owner: {mid}'
+    owners[mid]=anchors
+assert set(owners)=={f'M{n:02}' for n in range(1,20)},'All 19 SRS components need exactly one registry row'
+route_re=re.compile(r'''Route::(get|post|put|patch|delete)\(\s*['"]([^'"]+)['"]''')
+for name in ('routes/web.php','routes/api.php'):
+    paths=route_re.findall((root/name).read_text(encoding='utf-8'))
+    assert len(paths)==len(set(paths)),f'Duplicate canonical route method/path in {name}'
+print('PASS: 19 canonical owner rows and non-duplicate route declarations')
+
 print(f'PASS: canonical Laravel manifest, {len(migrations)} unique migrations, merged routes and tracked command dependencies')
 
 # Fail CI for accidental duplicate Python module functions/classes or class methods.
