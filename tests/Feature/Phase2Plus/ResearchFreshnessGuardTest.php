@@ -61,7 +61,7 @@ class ResearchFreshnessGuardTest extends TestCase
     public function test_stale_item_fails_immediate_freshness_check_before_cron_sweep(): void
     {
         $item=$this->record('overseas-job-placement',8);
-        $brand=$item->brand;
+        $brand=Brand::query()->findOrFail($item->brand_id);
         $this->assertSame('current',$item->freshness_status);
         $this->assertFalse(app(ResearchFreshnessGuard::class)->isCurrent($brand,$item));
         $this->assertSame('current',$item->fresh()->freshness_status); // Pure gate does not mutate.
