@@ -97,6 +97,18 @@
 <label>Content ID <input name="content_id" type="number" min="1" required></label>
 <button type="submit">Load revision history</button>
 </form><pre id="contentHistoryResult" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>
+<div class="card"><h2>Job recovery and safe status</h2>
+<p class="muted">Review brand jobs without exposing task payloads or credentials. Only an admin can requeue a dead-letter research fetch; social publication and permanent safety failures cannot be retried here.</p>
+<button data-load="operations/jobs" data-target="workflowOperations">Load job status</button>
+<pre id="workflowOperations" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre>
+@if(auth()->user()->isAdmin())
+<form data-job-action="requeueResearch">
+<label>Dead-letter research job ID<input type="number" name="job_id" min="1" required></label>
+<label>Reason for controlled requeue<textarea name="reason" minlength="30" maxlength="1000" rows="3" required></textarea></label>
+<label>Safety acknowledgment<select name="acknowledged" required><option value="">Select after verifying source</option><option value="1">I verified source access and approve a new read-only fetch</option></select></label>
+<button type="submit">Requeue approved research fetch</button></form>
+@endif
+</div>
 <div class="card"><h2>Content approval and creative rendering</h2>
 <form data-job-action="contentApprove">
 <label>Draft content ID<input type="number" name="content_id" min="1" required></label>
@@ -196,6 +208,7 @@
     sourceApprove:d=>'/sources/'+d.source_id+'/approve',
     sourceFetch:d=>'/sources/'+d.source_id+'/fetch',
     researchVerify:d=>'/research/'+d.item_id+'/verify',
+    requeueResearch:d=>'/operations/jobs/'+d.job_id+'/requeue-research',
     contentHistory:d=>'/content/'+d.content_id+'/history',
     contentEdit:d=>'/content/'+d.content_id,
     claimAttach:d=>'/content/'+d.content_id+'/claims',
@@ -217,6 +230,7 @@
     // Server receives only fields in the explicit route contract.
     delete data.source_id;delete data.item_id;delete data.content_id;
     delete data.publication_id;delete data.account_id;
+    delete data.job_id;
     if(action==='contentSchedule'){
       if(data.scheduled_at)data.scheduled_at=new Date(data.scheduled_at).toISOString();
       if(!data.social_account_id)delete data.social_account_id;
