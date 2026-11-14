@@ -119,3 +119,10 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - Added admin-only POST /api/v1/brands/{brand}/operations/jobs/{id}/requeue-research that permits only dead_letter research.fetch from active brand and unchanged approved public HTTPS source. It creates one new retry job per exhausted parent; the old record remains immutable. A bounded reviewer rationale and source job/new job mapping are audited.
 - Permanent failed jobs and all publish.post jobs are not eligible. Requeued payload is reconstructed only from current approved source ID/URL/type and cannot carry legacy arbitrary data. Tests in WorkflowOperationsTest.php cover role/brand isolation, idempotency, redaction and denied unsafe paths; Laravel CI 43570958093 passed before final payload-minimization hardening. Latest CI pending.
 - T036 and T043 moved from stale Not Started to In Progress. G03 remains In Progress and E2E-008 Not Run until real operator/staging and multi-node failure drills.
+
+
+## 2026-11-14 — Source authorization revalidation at worker boundary
+- WorkerJobsController rejects previously queued research.fetch jobs when an admin revokes its source or source URL/type changes. A claimed job is marked failed with SOURCE_APPROVAL_REVOKED and its payload is withheld.
+- Python Jobs.execute now calls fenced worker context before outbound research fetch. Server checks source permission again and responds 403 when revoked. Worker runtime treats permanent 403/404/422/426 policy denials as nonretryable; a stale lease 409 does not attempt to fail newer worker generation.
+- WorkerSourceRevocationTest.php and worker/tests/test_source_recheck.py added; application CI 43571285160 and portable worker CI 43571285176 passed for test commit 26162692. Latest worker failure-handling CI on 881e327 pending.
+- T038/T039 evidence refreshed. E2E-014 retains Not Run because real robots/DNS/redirect and between-check revocation fault simulation remain untested.
