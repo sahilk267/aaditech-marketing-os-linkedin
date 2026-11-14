@@ -32,7 +32,7 @@ class Client:
         }
         # A new nonce is used on every invocation, including retries.
         try:
-            response=self.session.request(method,self.url+path,json=data,headers=headers,timeout=35)
+            response=self.session.request(method,self.url+path,**({'params':data} if method=='GET' else {'json':data}),headers=headers,timeout=35)
         except requests.RequestException as ex:
             raise ApiError(0,'network_error') from ex
         if not 200<=response.status_code<300:
@@ -49,13 +49,13 @@ class Client:
     def heartbeat(self):return self.request('POST','/api/v1/worker/heartbeat',{'worker_version':'0.2.0'})
     def tick(self):return self.request('POST','/api/v1/worker/tick')
     def claim(self):return self.request('POST','/api/v1/worker/jobs/claim',{'lease_seconds':REQUESTED_LEASE_SECONDS}).get('job')
-    def start(self,jid):return self.request('POST',f'/api/v1/worker/jobs/{jid}/start')
-    def renew(self,jid):return self.request('POST',f'/api/v1/worker/jobs/{jid}/renew',{'lease_seconds':REQUESTED_LEASE_SECONDS})
-    def complete(self,jid,result):return self.request('POST',f'/api/v1/worker/jobs/{jid}/complete',{'result':result})
-    def fail(self,jid,code,retryable):return self.request('POST',f'/api/v1/worker/jobs/{jid}/fail',{'error_code':code,'retryable':retryable})
-    def context(self,jid):return self.request('GET',f'/api/v1/worker/jobs/{jid}/context')
+    def start(self,jid,attempt):return self.request('POST',f'/api/v1/worker/jobs/{jid}/start',{'attempt_count':attempt})
+    def renew(self,jid,attempt):return self.request('POST',f'/api/v1/worker/jobs/{jid}/renew',{'lease_seconds':REQUESTED_LEASE_SECONDS,'attempt_count':attempt})
+    def complete(self,jid,attempt,result):return self.request('POST',f'/api/v1/worker/jobs/{jid}/complete',{'attempt_count':attempt,'result':result})
+    def fail(self,jid,attempt,code,retryable):return self.request('POST',f'/api/v1/worker/jobs/{jid}/fail',{'attempt_count':attempt,'error_code':code,'retryable':retryable})
+    def context(self,jid,attempt):return self.request('GET',f'/api/v1/worker/jobs/{jid}/context',{'attempt_count':attempt})
     def models(self):return self.request('GET','/api/v1/worker/ai/models').get('models',[])
     def usage(self,provider,model,task,status):
         return self.request('POST','/api/v1/worker/ai/usage',{'provider':provider,'model_id':model,'task_type':task,'status':status})
     def catalog(self,models):return self.request('POST','/api/v1/worker/ai/catalog',{'models':models})
-    def publish(self,jid):return self.request('POST',f'/api/v1/worker/jobs/{jid}/publish')
+    def publish(self,jid,attempt):return self.request('POST',f'/api/v1/worker/jobs/{jid}/publish',{'attempt_count':attempt})

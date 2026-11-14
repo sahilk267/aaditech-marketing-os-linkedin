@@ -62,28 +62,30 @@ class JobEngine
         });
     }
 
-    public function start(int $id, int $nodeId): WorkflowJob
+    public function start(int $id, int $nodeId, int $attempt): WorkflowJob
     {
-        return $this->transition($id,$nodeId,function(WorkflowJob $job): void {
+        return $this->transition($id,$nodeId,$attempt,function(WorkflowJob $job): void {
+            if ($job->status === 'running') return;
             if ($job->status !== 'leased') $this->conflict();
             $job->status='running'; $job->started_at=now();
         }, 'workflow.started');
     }
 
-    public function renew(int $id, int $nodeId, int $seconds = 180): WorkflowJob
+    public function renew(int $id, int $nodeId, int $attempt, int $seconds = 180): WorkflowJob
     {
-        return $this->transition($id,$nodeId,function(WorkflowJob $job) use ($seconds): void {
+        return $this->transition($id,$nodeId,$attempt,function(WorkflowJob $job) use ($seconds): void {
             if (!in_array($job->status,['leased','running'],true)) $this->conflict();
             $job->lease_expires_at=now()->addSeconds(max(45,min(900,$seconds)));
         }, 'workflow.renewed');
     }
 
-    public function complete(int $id, int $nodeId, array $result): WorkflowJob
+    public function complete(int $id, int $nodeId, int $attempt, array $result): WorkflowJob
     {
-        return DB::transaction(function () use ($id,$nodeId,$result): WorkflowJob {
+        return DB::transaction(function () use ($id,$nodeId,$attempt,$result): WorkflowJob {
             $job=WorkflowJob::query()->lockForUpdate()->findOrFail($id);
+            if ((int)$job->attempt_count !== $attempt) $this->conflict();
             if ($job->status==='succeeded' && (int)$job->lease_owner===$nodeId) return $job;
-            $this->checkLease($job,$nodeId);
+            $this->checkLease($job,$nodeId,$attempt);
             if ($job->status!=='running') $this->conflict();
             $job->status='succeeded'; $job->result=$result; $job->completed_at=now();
             $job->lease_expires_at=null; $job->last_error=null; $job->save();
@@ -92,12 +94,13 @@ class JobEngine
         });
     }
 
-    public function fail(int $id, int $nodeId, string $code, bool $retryable = true): WorkflowJob
+    public function fail(int $id, int $nodeId, int $attempt, string $code, bool $retryable = true): WorkflowJob
     {
-        return DB::transaction(function () use ($id,$nodeId,$code,$retryable): WorkflowJob {
+        return DB::transaction(function () use ($id,$nodeId,$attempt,$code,$retryable): WorkflowJob {
             $job=WorkflowJob::query()->lockForUpdate()->findOrFail($id);
+            if ((int)$job->attempt_count !== $attempt) $this->conflict();
             if (in_array($job->status,['dead_letter','failed'],true) && (int)$job->lease_owner===$nodeId) return $job;
-            $this->checkLease($job,$nodeId);
+            $this->checkLease($job,$nodeId,$attempt);
             if (!in_array($job->status,['leased','running'],true)) $this->conflict();
             // Only a bounded machine-readable error code is retained, never raw model/provider output.
             $job->last_error=substr(preg_replace('/[^A-Za-z0-9_.-]/','_', $code),0,96);
@@ -115,20 +118,26 @@ class JobEngine
         });
     }
 
-    private function transition(int $id,int $nodeId,\Closure $callback,string $event): WorkflowJob
+    private function transition(int $id,int $nodeId,int $attempt,\Closure $callback,string $event): WorkflowJob
     {
-        return DB::transaction(function () use ($id,$nodeId,$callback,$event): WorkflowJob {
+        return DB::transaction(function () use ($id,$nodeId,$attempt,$callback,$event): WorkflowJob {
             $job=WorkflowJob::query()->lockForUpdate()->findOrFail($id);
-            $this->checkLease($job,$nodeId);
+            $this->checkLease($job,$nodeId,$attempt);
+            $before=$job->status;
             $callback($job); $job->save();
-            $this->event($event,'workflow_job',$job->id,[]);
+            // Repeated start by the same lease does not duplicate lifecycle events.
+            if ($before !== $job->status || $event !== 'workflow.started') {
+                $this->event($event,'workflow_job',$job->id,[]);
+            }
             return $job;
-        });
+        },3);
     }
 
-    private function checkLease(WorkflowJob $job,int $nodeId): void
+    private function checkLease(WorkflowJob $job,int $nodeId,int $attempt): void
     {
-        if ((int)$job->lease_owner !== $nodeId || !$job->lease_expires_at || $job->lease_expires_at->lte(now())) $this->conflict();
+        if ((int)$job->attempt_count !== $attempt ||
+            (int)$job->lease_owner !== $nodeId || !$job->lease_expires_at ||
+            $job->lease_expires_at->lte(now())) $this->conflict();
     }
 
     private function conflict(): never { abort(409,'Invalid workflow state or expired lease'); }

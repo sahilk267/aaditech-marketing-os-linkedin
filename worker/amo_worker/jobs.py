@@ -25,7 +25,7 @@ class Jobs:
             self.client.catalog(models)
             return {'verified_catalog_items':len(models)}
         if typ=='content.generate':
-            source_context=self.client.context(job['id'])
+            source_context=self.client.context(job['id'],job['attempt_count'])
             registry=self.client.models()
             catalog=self.ai.catalog()
             prompt=json.dumps({'requested':payload,'verified_research':source_context.get('facts',[]),
@@ -42,7 +42,7 @@ class Jobs:
             colors=brand.get('colors',{})
             return media_result(brand.get('name','Aadi'),content.get('title',''),
                 content.get('body',''),colors.get('primary','#17324D'),colors.get('accent','#20C997'))
-        if typ=='publish.post':return self.client.publish(job['id'])
+        if typ=='publish.post':return self.client.publish(job['id'],job['attempt_count'])
         if typ in ('analytics.collect','report.weekly'):
             return {'status':'manual_data_only','note':'No platform API permission assumed; no fabricated metrics'}
         raise ValueError('JOB_TYPE_UNSUPPORTED')

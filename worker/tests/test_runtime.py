@@ -14,7 +14,7 @@ class WorkerRuntimeTests(unittest.TestCase):
         self.assertTrue(base64.b64decode(r['png_base64']).startswith(b'\x89PNG\r\n\x1a\n'))
         self.assertEqual(3,len(r['carousel_png_base64']))
     def test_job_completion_renews_lease_first(self):
-        client=Mock();client.claim.return_value={'id':7,'job_type':'analytics.collect','payload':{}}
+        client=Mock();client.claim.return_value={'id':7,'attempt_count':2,'job_type':'analytics.collect','payload':{}}
         runner=Mock();runner.execute.return_value={'status':'manual_data_only'}
         self.assertTrue(work_once(client,runner))
         names=[x[0] for x in client.method_calls]

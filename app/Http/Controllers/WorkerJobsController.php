@@ -15,6 +15,11 @@ use Illuminate\Http\Request;
 
 class WorkerJobsController extends Controller
 {
+    private function attempt(Request $r): int
+    {
+        return (int)$r->validate(['attempt_count'=>['required','integer','min:1']])['attempt_count'];
+    }
+
     private function identity(Request $r): array
     {
         /** @var WorkerCredential $credential */
@@ -31,25 +36,26 @@ class WorkerJobsController extends Controller
         return response()->json(['job'=>$job?->only(['id','job_type','brand_id','payload','status','lease_expires_at','attempt_count']), 'server_time'=>now()->toIso8601String()]);
     }
     public function start(int $id, Request $r, JobEngine $engine): JsonResponse
-    { [$node]=$this->identity($r);return response()->json(['job'=>$engine->start($id,$node)]); }
+    { [$node]=$this->identity($r);return response()->json(['job'=>$engine->start($id,$node,$this->attempt($r))]); }
     public function renew(int $id, Request $r, JobEngine $engine): JsonResponse
-    { [$node]=$this->identity($r);$in=$r->validate(['lease_seconds'=>['nullable','integer','between:45,900']]);return response()->json(['job'=>$engine->renew($id,$node,$in['lease_seconds']??180)]); }
+    { [$node]=$this->identity($r);$in=$r->validate(['attempt_count'=>['required','integer','min:1'],'lease_seconds'=>['nullable','integer','between:45,900']]);return response()->json(['job'=>$engine->renew($id,$node,(int)$in['attempt_count'],$in['lease_seconds']??180)]); }
     public function complete(int $id, Request $r, JobEngine $engine, JobResultProcessor $processor): JsonResponse
     {
-        [$node]=$this->identity($r);$in=$r->validate(['result'=>['required','array','max:30']]);
+        [$node]=$this->identity($r);$in=$r->validate(['attempt_count'=>['required','integer','min:1'],'result'=>['required','array','max:30']]);
         return response()->json(['job'=>DB::transaction(function() use ($engine,$processor,$id,$node,$in) {
             $job=WorkflowJob::query()->lockForUpdate()->findOrFail($id);
+            if ((int)$job->attempt_count!==(int)$in['attempt_count']) abort(409,'Stale job attempt');
             if ($job->status!=='succeeded') {
                 if ($job->status!=='running'||(int)$job->lease_owner!==$node||!$job->lease_expires_at||$job->lease_expires_at->lte(now())) abort(409);
                 $processor->accept($job,$in['result']);
             }
-            return $engine->complete($id,$node,$in['result']);
+            return $engine->complete($id,$node,(int)$in['attempt_count'],$in['result']);
         })]);
     }
     public function fail(int $id, Request $r, JobEngine $engine): JsonResponse
     {
-        [$node]=$this->identity($r);$in=$r->validate(['error_code'=>['required','string','regex:/^[A-Za-z0-9_.-]{1,96}$/'], 'retryable'=>['required','boolean']]);
-        return response()->json(['job'=>$engine->fail($id,$node,$in['error_code'],$in['retryable'])]);
+        [$node]=$this->identity($r);$in=$r->validate(['error_code'=>['required','string','regex:/^[A-Za-z0-9_.-]{1,96}$/'], 'retryable'=>['required','boolean'], 'attempt_count'=>['required','integer','min:1']]);
+        return response()->json(['job'=>$engine->fail($id,$node,(int)$in['attempt_count'],$in['error_code'],$in['retryable'])]);
     }
     public function config(Request $r): JsonResponse
     {
@@ -62,6 +68,7 @@ class WorkerJobsController extends Controller
         [$node, $caps]=$this->identity($r);
         $job=WorkflowJob::query()->findOrFail($id);
         if (!in_array($job->job_type,$caps,true)||$job->status!=='running'||(int)$job->lease_owner!==$node||
+            (int)$job->attempt_count!==$this->attempt($r)||
             !$job->lease_expires_at||$job->lease_expires_at->lte(now())) abort(403);
         $brand=\App\Models\Brand::query()->findOrFail($job->brand_id);
         $config=$brand->brand_config??[];
@@ -124,7 +131,8 @@ class WorkerJobsController extends Controller
         [$node,$caps]=$this->identity($r);
         if (!in_array('publish.post',$caps,true)) abort(403);
         $job=WorkflowJob::query()->findOrFail($id);
-        if ($job->job_type!=='publish.post'||$job->status!=='running'||(int)$job->lease_owner!==$node||!$job->lease_expires_at||$job->lease_expires_at->lte(now())) abort(409);
+        if ($job->job_type!=='publish.post'||$job->status!=='running'||(int)$job->lease_owner!==$node||
+            (int)$job->attempt_count!==$this->attempt($r)||!$job->lease_expires_at||$job->lease_expires_at->lte(now())) abort(409);
         $id=(int)($job->payload['publishing_job_id']??0);
         if ($id<1) abort(422);
         return response()->json($publisher->publish($id));

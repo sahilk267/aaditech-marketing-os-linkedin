@@ -25,7 +25,7 @@ class JobEngineTest extends TestCase
         $this->assertEquals($job->id,$leased->id);
         $this->assertNull($engine->claim($other->id,['research.fetch']));
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        $engine->complete($job->id,$other->id,['ok'=>true]);
+        $engine->complete($job->id,$other->id,$leased->attempt_count,['ok'=>true]);
     }
 
     public function test_retry_moves_to_dead_letter_with_bounded_attempts(): void
@@ -35,9 +35,9 @@ class JobEngineTest extends TestCase
         $engine=app(JobEngine::class);
         $job=$engine->enqueue('research.fetch',['source_id'=>1],$brand->id);
         $job->max_attempts=1;$job->save();
-        $engine->claim($node->id,['research.fetch']);
-        $engine->start($job->id,$node->id);
-        $failed=$engine->fail($job->id,$node->id,'HTTP_500',true);
+        $lease=$engine->claim($node->id,['research.fetch']);
+        $engine->start($job->id,$node->id,$lease->attempt_count);
+        $failed=$engine->fail($job->id,$node->id,$lease->attempt_count,'HTTP_500',true);
         $this->assertEquals('dead_letter',$failed->status);
     }
 }

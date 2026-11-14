@@ -14,7 +14,7 @@ assert KEEPALIVE_SECONDS * 3 < REQUESTED_LEASE_SECONDS
 def work_once(client:Client,runner:Jobs)->bool:
     job=client.claim()
     if not job:return False
-    jid=job['id'];client.start(jid)
+    jid=job['id'];attempt=job['attempt_count'];client.start(jid,attempt)
     stop=threading.Event()
     # Long-running CPU inference may outlive the lease. Renew on a separate
     # HTTP session to avoid sharing a requests.Session across threads.
@@ -22,7 +22,7 @@ def work_once(client:Client,runner:Jobs)->bool:
         while not stop.wait(KEEPALIVE_SECONDS):
             try:
                 keepalive_client=Client(url=client.url,token=client.token)
-                keepalive_client.renew(jid)
+                keepalive_client.renew(jid,attempt)
                 # A long CPU-only render must not mark a healthy worker offline.
                 keepalive_client.heartbeat()
             except Exception:
@@ -31,17 +31,17 @@ def work_once(client:Client,runner:Jobs)->bool:
     renewer.start()
     try:
         result=runner.execute(job)
-        client.renew(jid)  # server is authoritative about lease ownership
-        client.complete(jid,result)
+        client.renew(jid,attempt)  # server is authoritative about lease generation
+        client.complete(jid,attempt,result)
         LOG.info('job_id=%s status=succeeded type=%s',jid,job['job_type'])
     except (UnsafeSource,ValueError,ModelOutputInvalid) as ex:
         code=getattr(ex,'args',['JOB_INVALID'])[0]
         if not isinstance(code,str) or not code.isupper():code='JOB_VALIDATION_FAILED'
-        client.fail(jid,code[:96],False)
+        client.fail(jid,attempt,code[:96],False)
     except (NoModelAvailable,ApiError) as ex:
-        client.fail(jid,'PROVIDER_UNAVAILABLE',True)
+        client.fail(jid,attempt,'PROVIDER_UNAVAILABLE',True)
     except Exception:
-        client.fail(jid,'WORKER_UNEXPECTED_ERROR',True)
+        client.fail(jid,attempt,'WORKER_UNEXPECTED_ERROR',True)
         LOG.exception('Job failed id=%s',jid)
     finally:
         stop.set()
