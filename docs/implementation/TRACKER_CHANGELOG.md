@@ -104,3 +104,11 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - ContentRevisionController.php now records the previous editorial content snapshot in content_reviews as human_revision, and exposes brand-scoped GET /api/v1/brands/{brand}/content/{contentId}/history. AuditLog remains minimal hashes, not a second copy of content bodies.
 - PATCH /content/{contentId} requires expected_fingerprint=SHA-256 fingerprint obtained by the current GET history response. If body, approval, variants or media changed before edit, request returns 409; dashboard loads current copy before enabling edit submission. Older API clients must update their PATCH payloads.
 - ContentRevisionTest.php adds history and stale-writer negative fixtures. T072 remains In Progress, C-014 remains In Review and E2E-018 Not Run pending controlled parallel writes and real-platform approval/version validation.
+
+
+## 2026-11-14 — Generation-fenced workflow recovery
+- Implemented attempt_count generation fencing across Laravel JobEngine, worker API endpoints and Python 0.3.0 client. Older worker registration fails with upgrade hint. Same-node ABA restart attempts cannot complete/fail/renew a newer lease.
+- Idempotent enqueue changed from check-then-create to atomic unique-key firstOrCreate with type/brand/payload conflict guard and single workflow.queued event.
+- PublishService now returns stable needs_reconciliation/blocked_review results on recovered jobs without replaying external publishing requests. PHPUnit and Python regression cases added.
+- Application CI 43570336852, MariaDB release bundle 43570336826 and portable Windows build 43570336818 passed. T032/T033/T035/T039/T040 advanced Not Started -> In Progress only; E2E-006..009 Not Run; T125 requires real parallel MySQL chaos.
+- Added JOB_LEASE_PROTOCOL.md with breaking worker version and rollout/rollback instructions. No user secrets changed and no deployment was performed against a live host.
