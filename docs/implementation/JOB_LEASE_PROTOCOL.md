@@ -31,3 +31,7 @@ The new Windows portable binary is built in GitHub Actions by the Portable Windo
 - GitHub Actions: Application CI 43570336852, MariaDB smoke release 43570336826, Windows portable build 43570336818 — passed at code commit 4cc26635.
 
 Still outstanding: simultaneous independent-connection MySQL claim/lease chaos, real Windows machine power-loss/restart, proxy disconnect and timeout fault injection, operator dead-letter recovery, read-side social provider reconciliation, and actual Hostinger deployment. E2E-006..009 remain Not Run. T125 remains Not Started; no formal G03/G10 gate acceptance.
+
+
+## Controlled operator recovery API
+A signed-in user with brand access may GET /api/v1/brands/{brand}/operations/jobs for a paginated status-only overview; job payloads and credentials are never returned. Only a brand-authorized admin may POST /api/v1/brands/{brand}/operations/jobs/{id}/requeue-research with reason (30-1000 chars) and acknowledged=true. The server requires a dead_letter research.fetch from an active brand, confirms the source is still approved and identical to the archived URL/type, and rechecks public HTTPS syntax. It creates a new minimal source-read job keyed operator-requeue:{parentId} and keeps the original terminal record. Duplicate requests return the existing child, without a second audit. There is no general publish.post retry or override. Security checks and admin source review remain necessary at execution time; full cron/worker concurrency plus source-revocation races remain open.

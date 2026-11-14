@@ -112,3 +112,10 @@ Future changes must record date, author/reviewer, affected IDs, reason, status/e
 - PublishService now returns stable needs_reconciliation/blocked_review results on recovered jobs without replaying external publishing requests. PHPUnit and Python regression cases added.
 - Application CI 43570336852, MariaDB release bundle 43570336826 and portable Windows build 43570336818 passed. T032/T033/T035/T039/T040 advanced Not Started -> In Progress only; E2E-006..009 Not Run; T125 requires real parallel MySQL chaos.
 - Added JOB_LEASE_PROTOCOL.md with breaking worker version and rollout/rollback instructions. No user secrets changed and no deployment was performed against a live host.
+
+
+## 2026-11-14 — Controlled operator recovery without social reposting
+- Added brand-scoped GET /api/v1/brands/{brand}/operations/jobs with bounded status-only pagination and no job payload/credentials exposed.
+- Added admin-only POST /api/v1/brands/{brand}/operations/jobs/{id}/requeue-research that permits only dead_letter research.fetch from active brand and unchanged approved public HTTPS source. It creates one new retry job per exhausted parent; the old record remains immutable. A bounded reviewer rationale and source job/new job mapping are audited.
+- Permanent failed jobs and all publish.post jobs are not eligible. Requeued payload is reconstructed only from current approved source ID/URL/type and cannot carry legacy arbitrary data. Tests in WorkflowOperationsTest.php cover role/brand isolation, idempotency, redaction and denied unsafe paths; Laravel CI 43570958093 passed before final payload-minimization hardening. Latest CI pending.
+- T036 and T043 moved from stale Not Started to In Progress. G03 remains In Progress and E2E-008 Not Run until real operator/staging and multi-node failure drills.
