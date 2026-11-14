@@ -38,8 +38,17 @@ def work_once(client:Client,runner:Jobs)->bool:
         code=getattr(ex,'args',['JOB_INVALID'])[0]
         if not isinstance(code,str) or not code.isupper():code='JOB_VALIDATION_FAILED'
         client.fail(jid,attempt,code[:96],False)
-    except (NoModelAvailable,ApiError) as ex:
+    except NoModelAvailable:
         client.fail(jid,attempt,'PROVIDER_UNAVAILABLE',True)
+    except ApiError as ex:
+        if ex.status == 409:
+            # Another generation owns the lease; no stale failure mutation.
+            LOG.warning('Lease generation no longer active job_id=%s',jid)
+        else:
+            permanent = ex.status in (403,404,422,426)
+            client.fail(jid,attempt,
+                        'WORKER_POLICY_REJECTED' if permanent else 'PROVIDER_UNAVAILABLE',
+                        not permanent)
     except Exception:
         client.fail(jid,attempt,'WORKER_UNEXPECTED_ERROR',True)
         LOG.exception('Job failed id=%s',jid)
