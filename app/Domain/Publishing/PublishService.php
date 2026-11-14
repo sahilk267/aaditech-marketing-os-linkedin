@@ -26,6 +26,10 @@ class PublishService
             if ((int)$job->content_item_id!==(int)$content->id) abort(409,'Publication content changed');
             if ($job->status==='succeeded') return ['done'=>true,'job'=>$job];
             if ($job->status==='manual_ready') return ['manual_ready'=>true,'job'=>$job];
+            // Crash/reclaim must never re-send a post with an uncertain or
+            // blocked outcome. Return stable state so the workflow job can finish.
+            if ($job->status==='needs_reconciliation') return ['reconciliation'=>true,'job'=>$job];
+            if ($job->status==='blocked_review') return ['blocked_review'=>true,'job'=>$job];
             if ($job->status!=='scheduled'||$job->scheduled_at->isFuture()) abort(409,'Publication not due or already attempted');
             if ((int)$content->brand_id !==(int)$job->brand_id) abort(409,'Cross-brand publishing denied');
             try {
@@ -62,7 +66,8 @@ class PublishService
         },3);
         if (isset($state['done'])) return ['status'=>'succeeded','platform_post_id'=>$state['job']->platform_post_id];
         if (isset($state['manual_ready'])) return ['status'=>'manual_ready'];
-        if (isset($state['blocked_review'])) return ['status'=>'blocked_review','reason'=>'CONTENT_APPROVAL_SNAPSHOT_STALE'];
+        if (isset($state['reconciliation'])) return ['status'=>'needs_reconciliation'];
+        if (isset($state['blocked_review'])) return ['status'=>'blocked_review','reason'=>$state['job']->last_error ?: 'REQUIRES_REVIEW'];
         /** @var PublishingJob $job */
         $job=$state['job'];
         try {
