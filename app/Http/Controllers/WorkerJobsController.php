@@ -20,6 +20,25 @@ class WorkerJobsController extends Controller
         return (int)$r->validate(['attempt_count'=>['required','integer','min:1']])['attempt_count'];
     }
 
+    private function approvedResearchSource(WorkflowJob $job): bool
+    {
+        $payload=$job->payload??[];
+        $brand=\App\Models\Brand::query()->find($job->brand_id);
+        $sourceId=$payload['source_id']??null;
+        if (!$brand || !$brand->is_active || !is_int($sourceId) || $sourceId<1) return false;
+        $source=\App\Models\BrandSource::query()->where('brand_id',$brand->id)
+            ->whereKey($sourceId)->first();
+        if (!$source || !$source->allowed ||
+            $source->source_url!==($payload['url']??null) ||
+            $source->source_type!==($payload['type']??null)) return false;
+        try {
+            \App\Domain\Research\SourcePolicy::assertPublicHttps($source->source_url);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return false;
+        }
+        return true;
+    }
+
     private function identity(Request $r): array
     {
         /** @var WorkerCredential $credential */
@@ -36,6 +55,10 @@ class WorkerJobsController extends Controller
         [$node,$caps]=$this->identity($r);
         $data=$r->validate(['lease_seconds'=>['nullable','integer','between:45,900']]);
         $job=$engine->claim($node,$caps,$data['lease_seconds']??180);
+        if ($job && $job->job_type==='research.fetch' && !$this->approvedResearchSource($job)) {
+            $engine->fail($job->id,$node,(int)$job->attempt_count,'SOURCE_APPROVAL_REVOKED',false);
+            $job=null; // Never expose a revoked source URL to a worker.
+        }
         return response()->json(['job'=>$job?->only(['id','job_type','brand_id','payload','status','lease_expires_at','attempt_count']), 'server_time'=>now()->toIso8601String()]);
     }
     public function start(int $id, Request $r, JobEngine $engine): JsonResponse
@@ -73,6 +96,9 @@ class WorkerJobsController extends Controller
         if (!in_array($job->job_type,$caps,true)||$job->status!=='running'||(int)$job->lease_owner!==$node||
             (int)$job->attempt_count!==$this->attempt($r)||
             !$job->lease_expires_at||$job->lease_expires_at->lte(now())) abort(403);
+        if ($job->job_type==='research.fetch' && !$this->approvedResearchSource($job)) {
+            abort(403,'Research source is no longer approved');
+        }
         $brand=\App\Models\Brand::query()->findOrFail($job->brand_id);
         $config=$brand->brand_config??[];
         $safeBrand=[

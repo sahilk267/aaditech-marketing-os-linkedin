@@ -18,7 +18,9 @@ class Jobs:
 
     def execute(self,job:dict):
         typ=job['job_type'];payload=job.get('payload') or {}
-        if typ=='research.fetch':return fetch_public_notes(payload['url'])
+        if typ=='research.fetch':
+            self.client.context(job['id'],job['attempt_count'])  # server rechecks source approval
+            return fetch_public_notes(payload['url'])
         if typ=='ai.catalog_sync':
             models=self.ai.catalog()
             # Server will independently fail closed on unknown or non-zero pricing.
