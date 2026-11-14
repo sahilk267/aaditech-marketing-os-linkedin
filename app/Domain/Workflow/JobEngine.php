@@ -31,7 +31,8 @@ class JobEngine
                 ? WorkflowJob::query()->firstOrCreate(['idempotency_key'=>$key],$values)
                 : WorkflowJob::query()->create($values+['idempotency_key'=>null]);
             if ($key !== null && !$job->wasRecentlyCreated) {
-                if ($job->job_type !== $type || $job->brand_id !== $brandId ||
+                if ($job->job_type !== $type ||
+                    ($job->brand_id === null ? null : (int)$job->brand_id) !== $brandId ||
                     $job->payload !== $payload) {
                     throw ValidationException::withMessages([
                         'idempotency_key'=>'Key already used for a different job/payload',
