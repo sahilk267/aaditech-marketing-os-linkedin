@@ -4,10 +4,10 @@ E2E-002,G02,Brand cross-tenant read/write/asset denied,403/404; zero leakage acr
 E2E-003,G02,Role action matrix,Admin/editor/analyst/operator mutation cases match policy,security,Not Run,Staging/Controlled test,BrandAccessTest.php and ManualDraftTest.php cover roles for brand and draft operations; full matrix pending,Engineering
 E2E-004,G02,"Worker revoked, replayed or stale token",All rejected; no secret leakage,security,Not Run,Staging/Controlled test,WorkerAccessTest.php covers revoked/replayed/expired credentials; full real TLS/recovery acceptance pending,Engineering
 E2E-005,G02,Fresh MySQL migrate rollback seed rerun,Schema stable FK/index and no brand duplication,integration,Not Run,Staging/Controlled test,,Engineering
-E2E-006,G03,Two workers claim one job,Only one active lease and no duplicate action,chaos,Not Run,Staging/Controlled test,,Engineering
-E2E-007,G03,"Worker crash after claim, before completion","Lease expires, reclaimed and resumes safely",chaos,Not Run,Staging/Controlled test,,Engineering
-E2E-008,G03,Duplicate complete/fail/outbox delivery,Idempotent transitions and no duplicate side effects,integration,Not Run,Staging/Controlled test,,Engineering
-E2E-009,G03,Long job renew and network drop,No false expiry; staleness fenced,chaos,Not Run,Staging/Controlled test,,Engineering
+E2E-006,G03,Two workers claim one job,Only one active lease and no duplicate action,chaos,Not Run,Staging/Controlled test,JobEngineTest.php and JobLeaseFencingTest.php CI 43570336852 cover sequential claim; two independent MySQL processes not run,Engineering
+E2E-007,G03,"Worker crash after claim, before completion","Lease expires, reclaimed and resumes safely",chaos,Not Run,Staging/Controlled test,JobLeaseFencingTest.php simulates lease expiry and same-node reclaim; real operating-system crash test pending,Engineering
+E2E-008,G03,Duplicate complete/fail/outbox delivery,Idempotent transitions and no duplicate side effects,integration,Not Run,Staging/Controlled test,JobLeaseFencingTest.php validates single success event and stable completion; external providers not exactly-once,Engineering
+E2E-009,G03,Long job renew and network drop,No false expiry; staleness fenced,chaos,Not Run,Staging/Controlled test,Worker Python lease keepalive and stale-generation rejection tested in CI 43570336852; long network partition test pending,Engineering
 E2E-010,G04,Paid/unknown/stale model discovered,Network request denied before provider invocation,security,Not Run,Staging/Controlled test,,Engineering
 E2E-011,G04,OpenRouter 429 -> Ollama CPU fallback,"Valid JSON and provider usage recorded, no paid model",contract,Not Run,Staging/Controlled test,,Engineering
 E2E-012,G04,Both AI providers down,Bounded retry/warning; no lost job,chaos,Not Run,Staging/Controlled test,,Engineering
