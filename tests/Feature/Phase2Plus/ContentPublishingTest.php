@@ -51,6 +51,30 @@ class ContentPublishingTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_reclaimed_worker_never_reposts_ambiguous_or_blocked_publication(): void
+    {
+        $admin=\App\Models\User::factory()->create(['role'=>'admin','is_active'=>true]);
+        $brand=Brand::query()->create(['name'=>'Tech','slug'=>'tech','brand_config'=>[]]);
+        $item=$this->content($brand);
+        $item->status='approved';
+        $item->approved_by=$admin->id;
+        $item->approved_at=now();
+        $item->save();
+        Http::fake();
+        foreach (['needs_reconciliation','blocked_review'] as $status) {
+            $post=PublishingJob::query()->create([
+                'brand_id'=>$brand->id,'content_item_id'=>$item->id,
+                'platform'=>'linkedin','scheduled_at'=>now()->subMinute(),
+                'status'=>$status,'idempotency_key'=>'reclaim-'.$status,
+                'last_error'=>$status==='blocked_review'?'CONTENT_EVIDENCE_REVALIDATION_FAILED':null,
+            ]);
+            $r=app(PublishService::class)->publish($post->id);
+            $this->assertSame($status,$r['status']);
+            $this->assertSame($status,$post->fresh()->status);
+        }
+        Http::assertNothingSent();
+    }
+
     public function test_linkedin_confirmation_failure_holds_for_reconciliation(): void
     {
         $user=\App\Models\User::factory()->create(['role'=>'admin','is_active'=>true]);
