@@ -10,6 +10,7 @@ class ApiError(Exception):
         super().__init__(f'WORKER_HTTP_{status}_{code}')
 
 REQUESTED_LEASE_SECONDS=900
+WORKER_VERSION='0.3.0'
 
 class Client:
     def __init__(self, url:str|None=None, token:str|None=None, session=None):
@@ -43,10 +44,10 @@ class Client:
     def register(self):
         return self.request('POST','/api/v1/worker/register',{
             'node_name':os.getenv('AMO_NODE_NAME','desktop-1'),
-            'platform':'windows','worker_version':'0.2.0',
+            'platform':'windows','worker_version':WORKER_VERSION,
             'capabilities':[x.strip() for x in os.getenv('AMO_CAPABILITIES','heartbeat,research.fetch,content.generate,media.render,publish.post,ai.catalog_sync').split(',') if x.strip()],
         })
-    def heartbeat(self):return self.request('POST','/api/v1/worker/heartbeat',{'worker_version':'0.2.0'})
+    def heartbeat(self):return self.request('POST','/api/v1/worker/heartbeat',{'worker_version':WORKER_VERSION})
     def tick(self):return self.request('POST','/api/v1/worker/tick')
     def claim(self):return self.request('POST','/api/v1/worker/jobs/claim',{'lease_seconds':REQUESTED_LEASE_SECONDS}).get('job')
     def start(self,jid,attempt):return self.request('POST',f'/api/v1/worker/jobs/{jid}/start',{'attempt_count':attempt})

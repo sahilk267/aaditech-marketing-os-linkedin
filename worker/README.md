@@ -22,3 +22,7 @@ For a manual session, `worker/.venv/Scripts/python.exe -m amo_worker.main --fore
 ## Portable Windows worker (no local Python needed)
 
 The Portable Windows Worker GitHub workflow builds and smoke-tests a standalone Windows executable, packages its SHA-256 hash, and includes install_windows_binary.ps1. Extract the CI artifact in a private directory and run that installer. It requests your HTTPS app URL and existing scoped worker token, stores the credential with user-only Windows permissions, and registers an at-logon task. This is an unsigned executable (Windows may display SmartScreen); it does not install Ollama or grant social OAuth, and requires a logged-in user session for the at-logon task.
+
+## Lease protocol compatibility (2026-11-14)
+
+**Breaking safety upgrade:** Laravel worker job APIs now require `attempt_count` from the claim response on start, renew, complete, fail, context and publish requests. Backend registration requires worker `0.3.0` or newer; older binaries cannot safely participate in generation-fenced retries. Download the new Portable Windows Worker artifact built from the same git revision as the deployed server; run its installer again in the existing private directory (the installer preserves an existing .env.worker and scoped token). Restart the at-logon worker task. Backend job API rejects outdated versions before work is claimed. A newer Windows binary may still show an unsigned publisher warning, so verify SHA-256 in the GitHub artifact.

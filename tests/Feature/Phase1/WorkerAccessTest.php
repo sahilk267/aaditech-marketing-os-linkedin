@@ -38,7 +38,7 @@ class WorkerAccessTest extends TestCase
     {
         [, $token]=$this->credential();
         $h=$this->headers($token, str_repeat('n',24));
-        $payload=['node_name'=>'desktop-1','platform'=>'windows','worker_version'=>'0.1.0','capabilities'=>['heartbeat']];
+        $payload=['node_name'=>'desktop-1','platform'=>'windows','worker_version'=>'0.3.0','capabilities'=>['heartbeat']];
         $this->withHeaders($h)->postJson('/api/v1/worker/register',$payload)->assertOk()->assertJsonPath('status','online');
         $this->withHeaders($h)->postJson('/api/v1/worker/register',$payload)->assertStatus(409);
         $this->withHeaders($this->headers($token))->postJson('/api/v1/worker/heartbeat')->assertOk();
@@ -48,9 +48,19 @@ class WorkerAccessTest extends TestCase
     public function test_unapproved_capabilities_cannot_be_registered(): void
     {
         [, $token]=$this->credential();
-        $payload=['node_name'=>'desktop-1','platform'=>'windows','worker_version'=>'0.1.0','capabilities'=>['publish']];
+        $payload=['node_name'=>'desktop-1','platform'=>'windows','worker_version'=>'0.3.0','capabilities'=>['publish']];
         $this->withHeaders($this->headers($token))->postJson('/api/v1/worker/register',$payload)
             ->assertUnprocessable()->assertJsonValidationErrors('capabilities');
+    }
+
+    public function test_old_worker_version_is_rejected_early_with_upgrade_hint(): void
+    {
+        [, $token]=$this->credential();
+        $this->withHeaders($this->headers($token))->postJson('/api/v1/worker/register',[
+            'node_name'=>'desktop-legacy','platform'=>'windows',
+            'worker_version'=>'0.2.0','capabilities'=>['heartbeat'],
+        ])->assertUnprocessable()->assertJsonValidationErrors('worker_version');
+        $this->assertDatabaseCount('worker_nodes',0);
     }
 
     public function test_expired_timestamp_is_rejected(): void

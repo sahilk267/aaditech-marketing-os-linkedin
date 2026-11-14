@@ -25,6 +25,9 @@ class WorkerJobsController extends Controller
         /** @var WorkerCredential $credential */
         $credential=$r->attributes->get('worker_credential');
         if (!$credential?->node) abort(409,'Register worker first');
+        if (!version_compare((string)$credential->node->worker_version,'0.3.0','>=')) {
+            abort(426,'Worker 0.3.0+ required for generation-fenced jobs; reinstall latest portable worker');
+        }
         return [(int)$credential->node->id, $credential->allowed_capabilities ?? []];
     }
 
@@ -61,7 +64,7 @@ class WorkerJobsController extends Controller
     {
         [, $caps]=$this->identity($r);
         return response()->json(['capabilities'=>$caps,'poll_seconds'=>10,'server_time'=>now()->toIso8601String(),
-            'strict_zero_cost'=>true, 'max_parallel_generations'=>1]);
+            'strict_zero_cost'=>true, 'max_parallel_generations'=>1, 'minimum_worker_version'=>'0.3.0', 'lease_protocol'=>'attempt_count_v1']);
     }
     public function context(int $id, Request $r): JsonResponse
     {

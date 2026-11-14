@@ -21,6 +21,12 @@ class WorkerController extends Controller
             'capabilities'=>['required','array','max:24'],
             'capabilities.*'=>['string','distinct','max:64'],
         ]);
+        if (!preg_match('/^\\d+\\.\\d+\\.\\d+$/D', $input['worker_version']) ||
+            version_compare($input['worker_version'], '0.3.0', '<')) {
+            throw ValidationException::withMessages([
+                'worker_version'=>'Worker 0.3.0+ is required for generation-fenced job API; install latest portable worker',
+            ]);
+        }
         /** @var WorkerCredential $credential */
         $credential = $request->attributes->get('worker_credential');
         $approved = $credential->allowed_capabilities ?? [];
@@ -48,6 +54,11 @@ class WorkerController extends Controller
     public function heartbeat(Request $request): JsonResponse
     {
         $input = $request->validate(['worker_version'=>['nullable','string','max:48']]);
+        if (isset($input['worker_version']) &&
+            (!preg_match('/^\\d+\\.\\d+\\.\\d+$/D',$input['worker_version']) ||
+             version_compare($input['worker_version'],'0.3.0','<'))) {
+            throw ValidationException::withMessages(['worker_version'=>'Upgrade worker to 0.3.0+']);
+        }
         /** @var WorkerCredential $credential */
         $credential = $request->attributes->get('worker_credential');
         $node = $credential->node;
