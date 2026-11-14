@@ -69,6 +69,9 @@ class WorkflowOperationsTest extends TestCase
             ->assertJsonPath('requeue_job_id',$childId)
             ->assertJsonPath('already_requested',true);
         $this->assertDatabaseCount('workflow_jobs',2);
+        $this->assertSame([
+            'source_id'=>$source->id,'url'=>$source->source_url,'type'=>$source->source_type,
+        ],WorkflowJob::query()->findOrFail($childId)->payload);
         $this->assertDatabaseHas('workflow_jobs',[
             'id'=>$childId,'job_type'=>'research.fetch','status'=>'queued',
             'idempotency_key'=>'operator-requeue:'.$job->id,
@@ -102,6 +105,10 @@ class WorkflowOperationsTest extends TestCase
         $source->allowed=true;$source->save();
         $job->status='failed';$job->save();
         $this->postJson($url,$input)->assertUnprocessable();
+        $job->status='dead_letter';$job->save();
+        $brand->is_active=false;$brand->save();
+        $this->postJson($url,$input)->assertUnprocessable();
+        $brand->is_active=true;$brand->save();
         $job->status='dead_letter';$job->job_type='publish.post';$job->save();
         $this->postJson($url,$input)->assertUnprocessable();
         $this->assertDatabaseCount('workflow_jobs',1);

@@ -55,6 +55,9 @@ class WorkflowOperationsController extends Controller
                 !is_string($payload['url']??null) || !is_string($payload['type']??null)) {
                 throw ValidationException::withMessages(['job'=>'Malformed archived research job']);
             }
+            if (!$brand->is_active) {
+                throw ValidationException::withMessages(['brand'=>'Inactive brand cannot requeue research']);
+            }
             $source=BrandSource::query()->where('brand_id',$brand->id)->findOrFail($sourceId);
             if (!$source->allowed || $source->source_url!==$payload['url'] ||
                 $source->source_type!==$payload['type']) {
@@ -63,7 +66,11 @@ class WorkflowOperationsController extends Controller
             SourcePolicy::assertPublicHttps($source->source_url);
             // One child per exhausted parent, even under duplicate clicks.
             // Later failures are separate child jobs and require new admin review.
-            $child=$engine->enqueue('research.fetch',$payload,$brand->id,'operator-requeue:'.$job->id);
+            $safePayload=[
+                'source_id'=>$source->id,'url'=>$source->source_url,
+                'type'=>$source->source_type,
+            ];
+            $child=$engine->enqueue('research.fetch',$safePayload,$brand->id,'operator-requeue:'.$job->id);
             if ($child->wasRecentlyCreated) {
                 AuditLog::query()->forceCreate([
                     'user_id'=>$request->user()->id,'actor_type'=>'user',
