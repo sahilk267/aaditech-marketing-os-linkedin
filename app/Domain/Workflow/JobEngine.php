@@ -19,23 +19,32 @@ class JobEngine
     {
         if (!in_array($type, self::TYPES, true)) throw ValidationException::withMessages(['job_type'=>'Job type not approved']);
         return DB::transaction(function () use ($type,$payload,$brandId,$key,$due): WorkflowJob {
-            if ($key) {
-                $existing = WorkflowJob::query()->where('idempotency_key', $key)->first();
-                if ($existing) {
-                    if ($existing->job_type !== $type || (int)$existing->brand_id !== (int)$brandId) {
-                        throw ValidationException::withMessages(['idempotency_key'=>'Key already used for another job']);
-                    }
-                    return $existing;
-                }
-            }
-            $job = WorkflowJob::query()->create([
+            $values = [
                 'job_type'=>$type,'payload'=>$payload,'brand_id'=>$brandId,'status'=>'queued',
                 'priority'=>5,'scheduled_at'=>$due ? \Carbon\Carbon::parse($due) : now(),
-                'max_attempts'=>5,'idempotency_key'=>$key,
-            ]);
-            $this->event('workflow.queued','workflow_job',$job->id,['type'=>$type,'brand_id'=>$brandId]);
+                'max_attempts'=>5,
+            ];
+            // Laravel firstOrCreate handles a UNIQUE idempotency-key collision
+            // by re-reading the winning row. A check-then-insert sequence did
+            // not safely handle competing worker/cron enqueue requests.
+            $job = $key !== null
+                ? WorkflowJob::query()->firstOrCreate(['idempotency_key'=>$key],$values)
+                : WorkflowJob::query()->create($values+['idempotency_key'=>null]);
+            if ($key !== null && !$job->wasRecentlyCreated) {
+                if ($job->job_type !== $type || $job->brand_id !== $brandId ||
+                    $job->payload !== $payload) {
+                    throw ValidationException::withMessages([
+                        'idempotency_key'=>'Key already used for a different job/payload',
+                    ]);
+                }
+            }
+            if ($job->wasRecentlyCreated) {
+                $this->event('workflow.queued','workflow_job',$job->id,[
+                    'type'=>$type,'brand_id'=>$brandId,
+                ]);
+            }
             return $job;
-        });
+        },3);
     }
 
     public function claim(int $nodeId, array $capabilities, int $leaseSeconds = 180): ?WorkflowJob
